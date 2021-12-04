@@ -4,9 +4,15 @@ with open("input/day03.txt", 'r') as infile:
 
 
 def decode(bits):
+    """Takes a long list of strings and decodes the binary by vertical columns, into a new
+    single binary string based on the most common bit state of a vertical column in the data.
+
+    :param bits: list - list of binary strings
+    :return: 
+    """
     gamma = []
     epsilon = []
-    for digit in range(12):
+    for digit in range(len(bits[0])):
         column = [bits[index][digit] for index in range(len(bits))]
         if column.count('1') > column.count('0'):
             gamma.append('1')
@@ -20,7 +26,7 @@ def decode(bits):
 
 
 def decode_oxy(bits):
-    for digit in range(12):
+    for digit in range(len(bits[0])):
         column = [bits[index][digit] for index in range(len(bits))]
         index = 0
         if column.count('1') >= column.count('0'):
@@ -39,7 +45,7 @@ def decode_oxy(bits):
 
 
 def decode_c02(bits):
-    for digit in range(12):
+    for digit in range(len(bits[0])):
         column = [bits[index][digit] for index in range(len(bits))]
         index = 0
         if column.count('1') < column.count('0'):
@@ -65,5 +71,4 @@ def convert_calc(greeklist):
 
 if __name__ == "__main__":
     print("part 1: ", convert_calc(decode(day03)))
-    greek = [decode_oxy(day03.copy()), decode_c02(day03.copy())]
-    print("part 2: ", convert_calc(greek))
+    print("part 2: ", convert_calc((decode_oxy(day03.copy()), decode_c02(day03.copy()))))
