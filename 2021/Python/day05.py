@@ -80,6 +80,27 @@ def plot_line(matrix, slope, x1, x2, y1, y2):
     return
 
 
+def plot_lattice_points_part1(matrix, x1, x2, y1, y2):
+    """Takes the Empty plot matrix and all coordinates, and plots points where lines are 0 or no slope.
+    # only plots the vertical/horizontal lines for part 1
+
+    :param matrix: list of lists - The big one
+    :param x1: list
+    :param x2: list
+    :param y1: list
+    :param y2: list
+    :return:
+    """
+    # for each line data
+    for _ in range(len(x1)):
+        slope = get_slope(x1[_], x2[_], y1[_], y2[_])
+        if slope == 0:  # horizontal line
+            plot_line(matrix, slope, x1[_], x2[_], y1[_], y2[_])
+        if slope is None:  # vertical line
+            plot_line(matrix, slope, x1[_], x2[_], y1[_], y2[_])
+    return
+
+
 def plot_lattice_points(matrix, x1, x2, y1, y2):
     """Takes the Empty plot matrix and all coordinates, and plots points where lines intersect lattice.
 
@@ -106,6 +127,8 @@ if __name__ == "__main__":
     grid_range = list(map(max, [list(map(max, data2))]))
     # remember +1 because we include ZERO FOR THE ORIGIN :)
     matrix_monarch = create_grid(grid_range[0]+1)
+    plot_lattice_points_part1(matrix_monarch, x1, x2, y1, y2)
+    print("part 1: ", count_dots(matrix_monarch))
+    matrix_monarch = create_grid(grid_range[0]+1)
     plot_lattice_points(matrix_monarch, x1, x2, y1, y2)
     print("part 2: ", count_dots(matrix_monarch))
-
