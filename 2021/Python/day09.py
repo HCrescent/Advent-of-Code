@@ -1,4 +1,6 @@
 """Day 09 Advent_of_Code 2021"""
+import copy
+
 with open("input/day09.txt", 'r') as infile:
     matrix_map = [list(line.rstrip()) for line in infile]
 for i, each in enumerate(matrix_map):
@@ -59,14 +61,86 @@ def add_neighbors(matrix, x, y, part2=False):
         if num < matrix[x][y-1] and num < matrix[x-1][y]:
             risk_level = 1 + num
     if risk_level > 0 and part2:
-        basin_mapper(matrix, x, y)
+        record = {}
+        basin_mapper(matrix, x, y, record)
     return risk_level
 
 
-def basin_mapper(matrix, x, y):
+def basin_mapper(matrix, x, y, record, old_x=None, old_y=None):
+    old_node = [old_x, old_y]
+    # our old x and old y here are to prevent accidental backtracking in our recursion
+    # non edge cases, core case with largest amount of executions, always has 4 neighbors
+    if 0 < x < len(matrix) - 1 and 0 < y < len(matrix[x]) - 1:  # case for matrix[x][y] has 4 neighbors.
+        if matrix[x][y-1] < 9 and [x, y-1] != old_node and f"m:{x},{y}" not in record.keys():  # west is below 9 and not our previous node
+            basin_mapper(matrix, x, y-1, x, y)
+        if matrix[x][y+1] < 9 and [x, y+1] != old_node:  # east is < 9 and not previous node
+            basin_mapper(matrix, x, y+1, x, y)
+        if matrix[x+1][y] < 9 and [x+1, y] != old_node:  # south is < 9 and not previous node
+            basin_mapper(matrix, x+1, y, x, y)
+        if matrix[x-1][y] < 9 and [x-1, y] != old_node:  # north is < 9 and not previous node
+            basin_mapper(matrix, x-1, y, x, y)
+    # top edge case, always 3 neighbors: west east south
+    elif x == 0 and 0 < y < len(matrix[x]) - 1:
+        if matrix[x][y - 1] < 9 and [x, y-1] != old_node:  # west is below 9 and not our previous node
+            basin_mapper(matrix, x, y-1, x, y)
+        if matrix[x][y+1] < 9 and [x, y+1] != old_node:  # east is < 9 and not previous node
+            basin_mapper(matrix, x, y+1, x, y)
+        if matrix[x+1][y] < 9 and [x+1, y] != old_node:  # south is < 9 and not previous node
+            basin_mapper(matrix, x+1, y, x, y)
+    # right edge case, always 3 neighbors: west south north
+    elif 0 < x < len(matrix) - 1 and y == len(matrix[x]) - 1:
+        if matrix[x][y-1] < 9 and [x, y-1] != old_node:  # west is below 9 and not our previous node
+            basin_mapper(matrix, x, y-1, x, y)
+        if matrix[x+1][y] < 9 and [x+1, y] != old_node:  # south is < 9 and not previous node
+            basin_mapper(matrix, x+1, y, x, y)
+        if matrix[x-1][y] < 9 and [x-1, y] != old_node:  # north is < 9 and not previous node
+            basin_mapper(matrix, x-1, y, x, y)
+    # bottom edge case, always 3 neighbors: west east north
+    elif x == len(matrix) - 1 and 0 < y < len(matrix[x]) - 1:
+        if matrix[x][y-1] < 9 and [x, y-1] != old_node:  # west is below 9 and not our previous node
+            basin_mapper(matrix, x, y-1, x, y)
+        if matrix[x][y+1] < 9 and [x, y+1] != old_node:  # east is < 9 and not previous node
+            basin_mapper(matrix, x, y+1, x, y)
+        if matrix[x-1][y] < 9 and [x-1, y] != old_node:  # north is < 9 and not previous node
+            basin_mapper(matrix, x-1, y, x, y)
+    # left edge case, always 3 neighbors: east south north
+    elif 0 < x < len(matrix) - 1 and y == 0:
+        if matrix[x][y+1] < 9 and [x, y+1] != old_node:  # east is < 9 and not previous node
+            basin_mapper(matrix, x, y+1, x, y)
+        if matrix[x+1][y] < 9 and [x+1, y] != old_node:  # south is < 9 and not previous node
+            basin_mapper(matrix, x+1, y, x, y)
+        if matrix[x-1][y] < 9 and [x-1, y] != old_node:  # north is < 9 and not previous node
+            basin_mapper(matrix, x-1, y, x, y)
+    # top left corner case, always 2 neighbors: east south
+    elif x == 0 and y == 0:
+        if matrix[x][y + 1] < 9 and [x, y+1] != old_node:  # east is < 9 and not our previous node
+            basin_mapper(matrix, x, y+1, x, y)
+        if matrix[x+1][y] < 9 and [x+1, y] != old_node:  # south is < 9 and not previous node
+            basin_mapper(matrix, x+1, y, x, y)
+    # top right corner case, always 2 neighbors: west south
+    elif x == 0 and y == len(matrix[x]) - 1:
+        if matrix[x][y-1] < 9 and [x, y-1] != old_node:  # west is below 9 and not our previous node
+            basin_mapper(matrix, x, y-1, x, y)
+        if matrix[x+1][y] < 9 and [x+1, y] != old_node:  # south is < 9 and not previous node
+            basin_mapper(matrix, x+1, y, x, y)
+    # bottom left corner case, always 2 neighbors: east north
+    elif x == len(matrix) - 1 and y == 0:
+        if matrix[x][y+1] < 9 and [x, y+1] != old_node:  # east is < 9 and not previous node
+            basin_mapper(matrix, x, y+1, x, y)
+        if matrix[x-1][y] < 9 and [x-1, y] != old_node:  # north is < 9 and not previous node
+            basin_mapper(matrix, x-1, y, x, y)
+    # bottom right corner case, always 2 neighbors: west north
+    elif x == len(matrix) - 1 and y == len(matrix[x]) - 1:
+        if matrix[x][y-1] < 9 and [x, y-1] != old_node:  # west is below 9 and not our previous node
+            basin_mapper(matrix, x, y-1, x, y)
+        if matrix[x-1][y] < 9 and [x-1, y] != old_node:  # north is < 9 and not previous node
+            basin_mapper(matrix, x-1, y, x, y)
     # x y is our basin low point
     # a function that uses our earlier cases to reverse map every possible path to a nine from origin?
-    # while mapping the coordinates to a dictionary key : True, then looking at the total length of the dict
+    new_matrix = copy.deepcopy(matrix)
+    new_matrix[x][y] = 0
+    display_matrix(new_matrix)
+    record[f"m:{x},{y}"] = True
     pass
 
 
