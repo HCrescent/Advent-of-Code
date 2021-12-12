@@ -132,43 +132,30 @@ def basin_mapper(matrix, x, y, record, old_x=None, old_y=None):
             record = basin_mapper(matrix, x+1, y, record, x, y)
         if north(matrix, x, y, old_node, record):
             record = basin_mapper(matrix, x-1, y, record, x, y)
-        record[f"m:{x},{y}"] = False
     # top left corner case, always 2 neighbors: east south
     elif x == 0 and y == 0:
         if east(matrix, x, y, old_node, record):
             record = basin_mapper(matrix, x, y+1, record, x, y)
-            record[f"m:{x},{y}"] = False
         if south(matrix, x, y, old_node, record):
             record = basin_mapper(matrix, x+1, y, record, x, y)
-            record[f"m:{x},{y}"] = False
-        record[f"m:{x},{y}"] = False
     # top right corner case, always 2 neighbors: west south
     elif x == 0 and y == len(matrix[x])-1:
         if west(matrix, x, y, old_node, record):
             record = basin_mapper(matrix, x, y-1, record, x, y)
-            record[f"m:{x},{y}"] = False
         if south(matrix, x, y, old_node, record):
             record = basin_mapper(matrix, x+1, y, record, x, y)
-            record[f"m:{x},{y}"] = False
-        record[f"m:{x},{y}"] = False
     # bottom left corner case, always 2 neighbors: east north
     elif x == len(matrix)-1 and y == 0:
         if east(matrix, x, y, old_node, record):
             record = basin_mapper(matrix, x, y+1, record, x, y)
-            record[f"m:{x},{y}"] = False
         if north(matrix, x, y, old_node, record):
             record = basin_mapper(matrix, x-1, y, record, x, y)
-            record[f"m:{x},{y}"] = False
-        record[f"m:{x},{y}"] = False
     # bottom right corner case, always 2 neighbors: west north
     elif x == len(matrix)-1 and y == len(matrix[x])-1:
         if west(matrix, x, y, old_node, record):
             record = basin_mapper(matrix, x, y-1, record, x, y)
-            record[f"m:{x},{y}"] = False
         if north(matrix, x, y, old_node, record):
             record = basin_mapper(matrix, x-1, y, record, x, y)
-            record[f"m:{x},{y}"] = False
-        record[f"m:{x},{y}"] = False
     # x y is our basin low point
     # a function that uses our earlier cases to reverse map every possible path to a nine from origin?
 #    new_matrix = copy.deepcopy(matrix)
