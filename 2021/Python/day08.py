@@ -30,16 +30,17 @@ def solve(in_words, out_words):
 	setlist = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 	# first pass will always get 4 unique digits
 	for each in in_words:
-		if len(each) == 2:
-			setlist[1] = each
-			one = set(each)
-		elif len(each) == 3:
-			setlist[7] = each
-		elif len(each) == 4:
-			setlist[4] = each
-			four = set(each)
-		elif len(each) == 7:
-			setlist[8] = each
+		match len(each):
+			case 2:
+				setlist[1] = each
+				one = set(each)
+			case 3:
+				setlist[7] = each
+			case 4:
+				setlist[4] = each
+				four = set(each)
+			case 7:
+				setlist[8] = each
 	# second pass gets all digits except 5 and 2
 	for each in in_words:
 		if each not in setlist:  # skip known keys
