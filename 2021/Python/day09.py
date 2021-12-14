@@ -22,42 +22,43 @@ def add_neighbors(matrix, x, y):
     area = 0
     num = matrix[x][y]
     # core case with largest amount of executions, always has 4 neighbors
-    if 0 < x < len(matrix)-1 and 0 < y < len(matrix[x])-1:  # case for matrix[x][y] has 4 neighbors.
-        #          west                         east                    south                   north
-        if num < matrix[x][y-1] and num < matrix[x][y+1] and num < matrix[x+1][y] and num < matrix[x-1][y]:
-            risk_level = 1 + num
-    # top edge case, always 3 neighbors: west east south
-    elif x == 0 and 0 < y < len(matrix[x])-1:
-        if num < matrix[x][y-1] and num < matrix[x][y+1] and num < matrix[x+1][y]:
-            risk_level = 1 + num
-    # right edge case, always 3 neighbors: west south north
-    elif 0 < x < len(matrix)-1 and y == len(matrix[x])-1:
-        if num < matrix[x][y-1] and num < matrix[x+1][y] and num < matrix[x-1][y]:
-            risk_level = 1 + num
-    # bottom edge case, always 3 neighbors: west east north
-    elif x == len(matrix)-1 and 0 < y < len(matrix[x])-1:
-        if num < matrix[x][y-1] and num < matrix[x][y+1] and num < matrix[x-1][y]:
-            risk_level = 1 + num
-    # left edge case, always 3 neighbors: east south north
-    elif 0 < x < len(matrix)-1 and y == 0:
-        if num < matrix[x][y+1] and num < matrix[x+1][y] and num < matrix[x-1][y]:
-            risk_level = 1 + num
-    # top left corner case, always 2 neighbors: east south
-    elif x == 0 and y == 0:
-        if num < matrix[x][y+1] and num < matrix[x+1][y]:
-            risk_level = 1 + num
-    # top right corner case, always 2 neighbors: west south
-    elif x == 0 and y == len(matrix[x])-1:
-        if num < matrix[x][y-1] and num < matrix[x+1][y]:
-            risk_level = 1 + num
-    # bottom left corner case, always 2 neighbors: east north
-    elif x == len(matrix)-1 and y == 0:
-        if num < matrix[x][y+1] and num < matrix[x-1][y]:
-            risk_level = 1 + num
-    # bottom right corner case, always 2 neighbors: west north
-    elif x == len(matrix)-1 and y == len(matrix[x])-1:
-        if num < matrix[x][y-1] and num < matrix[x-1][y]:
-            risk_level = 1 + num
+    match x, y:
+        case x, y if 0 < x < len(matrix)-1 and 0 < y < len(matrix[x])-1:  # case for matrix[x][y] has 4 neighbors.
+            #          west                         east                    south                   north
+            if num < matrix[x][y-1] and num < matrix[x][y+1] and num < matrix[x+1][y] and num < matrix[x-1][y]:
+                risk_level = 1 + num
+        # top edge case, always 3 neighbors: west east south
+        case x, y if x == 0 and 0 < y < len(matrix[x])-1:
+            if num < matrix[x][y-1] and num < matrix[x][y+1] and num < matrix[x+1][y]:
+                risk_level = 1 + num
+        # right edge case, always 3 neighbors: west south north
+        case x, y if 0 < x < len(matrix)-1 and y == len(matrix[x])-1:
+            if num < matrix[x][y-1] and num < matrix[x+1][y] and num < matrix[x-1][y]:
+                risk_level = 1 + num
+        # bottom edge case, always 3 neighbors: west east north
+        case x, y if x == len(matrix)-1 and 0 < y < len(matrix[x])-1:
+            if num < matrix[x][y-1] and num < matrix[x][y+1] and num < matrix[x-1][y]:
+                risk_level = 1 + num
+        # left edge case, always 3 neighbors: east south north
+        case x, y if 0 < x < len(matrix)-1 and y == 0:
+            if num < matrix[x][y+1] and num < matrix[x+1][y] and num < matrix[x-1][y]:
+                risk_level = 1 + num
+        # top left corner case, always 2 neighbors: east south
+        case x, y if x == 0 and y == 0:
+            if num < matrix[x][y+1] and num < matrix[x+1][y]:
+                risk_level = 1 + num
+        # top right corner case, always 2 neighbors: west south
+        case x, y if x == 0 and y == len(matrix[x])-1:
+            if num < matrix[x][y-1] and num < matrix[x+1][y]:
+                risk_level = 1 + num
+        # bottom left corner case, always 2 neighbors: east north
+        case x, y if x == len(matrix)-1 and y == 0:
+            if num < matrix[x][y+1] and num < matrix[x-1][y]:
+                risk_level = 1 + num
+        # bottom right corner case, always 2 neighbors: west north
+        case x, y if x == len(matrix)-1 and y == len(matrix[x])-1:
+            if num < matrix[x][y-1] and num < matrix[x-1][y]:
+                risk_level = 1 + num
     if risk_level > 0:
         # MAP THAT BASIN
         record = {}
@@ -96,80 +97,81 @@ def basin_mapper(matrix, x, y, record):
     :param record: dict - dictionary of nodes : False for bool key checks while pathing
     :return: dict - the most up to date record of nodes
     """
-    if 0 < x < len(matrix)-1 and 0 < y < len(matrix[x])-1:  # case for matrix[x][y] has 4 neighbors.
-        record[f"m:{x},{y}"] = False
-        if west(matrix, x, y, record):
-            record = basin_mapper(matrix, x, y-1, record)
-        if east(matrix, x, y, record):
-            record = basin_mapper(matrix, x, y+1, record)
-        if south(matrix, x, y, record):
-            record = basin_mapper(matrix, x+1, y, record)
-        if north(matrix, x, y, record):
-            record = basin_mapper(matrix, x-1, y, record)
-    # top edge case, always 3 neighbors: west east south
-    elif x == 0 and 0 < y < len(matrix[x])-1:
-        record[f"m:{x},{y}"] = False
-        if west(matrix, x, y, record):
-            record = basin_mapper(matrix, x, y-1, record)
-        if east(matrix, x, y, record):
-            record = basin_mapper(matrix, x, y+1, record)
-        if south(matrix, x, y, record):
-            record = basin_mapper(matrix, x+1, y, record)
-    # right edge case, always 3 neighbors: west south north
-    elif 0 < x < len(matrix)-1 and y == len(matrix[x])-1:
-        record[f"m:{x},{y}"] = False
-        if west(matrix, x, y, record):
-            record = basin_mapper(matrix, x, y-1, record)
-        if south(matrix, x, y, record):
-            record = basin_mapper(matrix, x+1, y, record)
-        if north(matrix, x, y, record):
-            record = basin_mapper(matrix, x-1, y, record)
-    # bottom edge case, always 3 neighbors: west east north
-    elif x == len(matrix)-1 and 0 < y < len(matrix[x])-1:
-        record[f"m:{x},{y}"] = False
-        if west(matrix, x, y, record):
-            record = basin_mapper(matrix, x, y-1, record)
-        if east(matrix, x, y, record):
-            record = basin_mapper(matrix, x, y+1, record)
-        if north(matrix, x, y, record):
-            record = basin_mapper(matrix, x-1, y, record)
-    # left edge case, always 3 neighbors: east south north
-    elif 0 < x < len(matrix)-1 and y == 0:
-        record[f"m:{x},{y}"] = False
-        if east(matrix, x, y, record):
-            record = basin_mapper(matrix, x, y+1, record)
-        if south(matrix, x, y, record):
-            record = basin_mapper(matrix, x+1, y, record)
-        if north(matrix, x, y, record):
-            record = basin_mapper(matrix, x-1, y, record)
-    # top left corner case, always 2 neighbors: east south
-    elif x == 0 and y == 0:
-        record[f"m:{x},{y}"] = False
-        if east(matrix, x, y, record):
-            record = basin_mapper(matrix, x, y+1, record)
-        if south(matrix, x, y, record):
-            record = basin_mapper(matrix, x+1, y, record)
-    # top right corner case, always 2 neighbors: west south
-    elif x == 0 and y == len(matrix[x])-1:
-        record[f"m:{x},{y}"] = False
-        if west(matrix, x, y, record):
-            record = basin_mapper(matrix, x, y-1, record)
-        if south(matrix, x, y, record):
-            record = basin_mapper(matrix, x+1, y, record)
-    # bottom left corner case, always 2 neighbors: east north
-    elif x == len(matrix)-1 and y == 0:
-        record[f"m:{x},{y}"] = False
-        if east(matrix, x, y, record):
-            record = basin_mapper(matrix, x, y+1, record)
-        if north(matrix, x, y, record):
-            record = basin_mapper(matrix, x-1, y, record)
-    # bottom right corner case, always 2 neighbors: west north
-    elif x == len(matrix)-1 and y == len(matrix[x])-1:
-        record[f"m:{x},{y}"] = False
-        if west(matrix, x, y, record):
-            record = basin_mapper(matrix, x, y-1, record)
-        if north(matrix, x, y, record):
-            record = basin_mapper(matrix, x-1, y, record)
+    match x, y:
+        case x, y if 0 < x < len(matrix)-1 and 0 < y < len(matrix[x])-1:  # case for matrix[x][y] has 4 neighbors.
+            record[f"m:{x},{y}"] = False
+            if west(matrix, x, y, record):
+                record = basin_mapper(matrix, x, y-1, record)
+            if east(matrix, x, y, record):
+                record = basin_mapper(matrix, x, y+1, record)
+            if south(matrix, x, y, record):
+                record = basin_mapper(matrix, x+1, y, record)
+            if north(matrix, x, y, record):
+                record = basin_mapper(matrix, x - 1, y, record)
+        # top edge case, always 3 neighbors: west east south
+        case x, y if x == 0 and 0 < y < len(matrix[x])-1:
+            record[f"m:{x},{y}"] = False
+            if west(matrix, x, y, record):
+                record = basin_mapper(matrix, x, y-1, record)
+            if east(matrix, x, y, record):
+                record = basin_mapper(matrix, x, y+1, record)
+            if south(matrix, x, y, record):
+                record = basin_mapper(matrix, x+1, y, record)
+        # right edge case, always 3 neighbors: west south north
+        case x, y if 0 < x < len(matrix)-1 and y == len(matrix[x])-1:
+            record[f"m:{x},{y}"] = False
+            if west(matrix, x, y, record):
+                record = basin_mapper(matrix, x, y-1, record)
+            if south(matrix, x, y, record):
+                record = basin_mapper(matrix, x+1, y, record)
+            if north(matrix, x, y, record):
+                record = basin_mapper(matrix, x-1, y, record)
+        # bottom edge case, always 3 neighbors: west east north
+        case x, y if x == len(matrix)-1 and 0 < y < len(matrix[x])-1:
+            record[f"m:{x},{y}"] = False
+            if west(matrix, x, y, record):
+                record = basin_mapper(matrix, x, y-1, record)
+            if east(matrix, x, y, record):
+                record = basin_mapper(matrix, x, y+1, record)
+            if north(matrix, x, y, record):
+                record = basin_mapper(matrix, x-1, y, record)
+        # left edge case, always 3 neighbors: east south north
+        case x, y if 0 < x < len(matrix)-1 and y == 0:
+            record[f"m:{x},{y}"] = False
+            if east(matrix, x, y, record):
+                record = basin_mapper(matrix, x, y+1, record)
+            if south(matrix, x, y, record):
+                record = basin_mapper(matrix, x+1, y, record)
+            if north(matrix, x, y, record):
+                record = basin_mapper(matrix, x-1, y, record)
+        # top left corner case, always 2 neighbors: east south
+        case x, y if x == 0 and y == 0:
+            record[f"m:{x},{y}"] = False
+            if east(matrix, x, y, record):
+                record = basin_mapper(matrix, x, y+1, record)
+            if south(matrix, x, y, record):
+                record = basin_mapper(matrix, x+1, y, record)
+        # top right corner case, always 2 neighbors: west south
+        case x, y if x == 0 and y == len(matrix[x])-1:
+            record[f"m:{x},{y}"] = False
+            if west(matrix, x, y, record):
+                record = basin_mapper(matrix, x, y-1, record)
+            if south(matrix, x, y, record):
+                record = basin_mapper(matrix, x+1, y, record)
+        # bottom left corner case, always 2 neighbors: east north
+        case x, y if x == len(matrix)-1 and y == 0:
+            record[f"m:{x},{y}"] = False
+            if east(matrix, x, y, record):
+                record = basin_mapper(matrix, x, y+1, record)
+            if north(matrix, x, y, record):
+                record = basin_mapper(matrix, x-1, y, record)
+        # bottom right corner case, always 2 neighbors: west north
+        case x, y if x == len(matrix)-1 and y == len(matrix[x])-1:
+            record[f"m:{x},{y}"] = False
+            if west(matrix, x, y, record):
+                record = basin_mapper(matrix, x, y-1, record)
+            if north(matrix, x, y, record):
+                record = basin_mapper(matrix, x-1, y, record)
     return record
 
 
