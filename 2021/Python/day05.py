@@ -3,12 +3,12 @@
 with open("input/day05.txt", 'r') as infile:
     data = [line.replace(" -> ", ',').rstrip() for line in infile]
     data2 = []
-    for i in range(len(data)):
-        data2.append(list(map(int, data[i].strip().split(','))))
-x1 = [data2[_][0] for _ in range(len(data2))]
-y1 = [data2[_][1] for _ in range(len(data2))]
-x2 = [data2[_][2] for _ in range(len(data2))]
-y2 = [data2[_][3] for _ in range(len(data2))]
+    for index in range(len(data)):
+        data2.append(list(map(int, data[index].strip().split(','))))
+X1 = [data2[_][0] for _ in range(len(data2))]
+Y1 = [data2[_][1] for _ in range(len(data2))]
+X2 = [data2[_][2] for _ in range(len(data2))]
+Y2 = [data2[_][3] for _ in range(len(data2))]
 
 
 def display_graph(graph):
@@ -108,8 +108,8 @@ if __name__ == "__main__":
     grid_range = list(map(max, [list(map(max, data2))]))
     # remember +1 because we include ZERO FOR THE ORIGIN :)
     matrix_monarch = create_grid(grid_range[0]+1)
-    plot_lattice_points(matrix_monarch, x1, x2, y1, y2, False)
+    plot_lattice_points(matrix_monarch, X1, X2, Y1, Y2, False)
     print("part 1: ", count_dots(matrix_monarch))
     matrix_monarch = create_grid(grid_range[0]+1)
-    plot_lattice_points(matrix_monarch, x1, x2, y1, y2, True)
+    plot_lattice_points(matrix_monarch, X1, X2, Y1, Y2, True)
     print("part 2: ", count_dots(matrix_monarch))
