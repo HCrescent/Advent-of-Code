@@ -28,7 +28,6 @@ def recursive_cave(connected_caves, path_taken='', part2=False, flag=False):
 
 
 if __name__ == "__main__":
-
 	recursive_cave(CAVES["start"])
 	print("part 1: ", len(UNIQUE_PATHS))
 	recursive_cave(CAVES["start"], '', True)
