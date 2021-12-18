@@ -8,25 +8,28 @@ with open("input/day12.txt", 'r') as infile:
 UNIQUE_PATHS = {}
 
 
-def all_paths():
-	count = 0
-
-	pass
-
-
-def recursive_cave(connected_caves, path_taken, record):
-	end = []
+def recursive_cave(connected_caves, path_taken='', part2=False, flag=False):
+	name = list(CAVES.keys())[list(CAVES.values()).index(connected_caves)]  # name of cave we are in
+	path_taken += f"{name},"
+	if name == "end":
+		UNIQUE_PATHS[path_taken] = True  # update new unique path
+		return  # return up one level of recursion to find more paths
 	for each in connected_caves:
-		if record.get(each, 1):  # if each is in our record of visited caves -> False, if not -> True
-			if each == each.lower():
-				record[each] = False
-			path_taken += f"{each},"
-			path_taken = recursive_cave(CAVES[each], path_taken, record)
-			print(path_taken)
-	return path_taken  # this should be our return when theres no options to move
+		if each == "start":
+			continue
+		new_flag = flag
+		if each.islower() and f"{each}," in path_taken:  # if each is a small cave and already in our path
+			if part2 and not new_flag:
+				new_flag = True
+			else:
+				continue
+		recursive_cave(CAVES[each], path_taken, part2, new_flag)
+	return  # this should be our return when theres no options to move
 
 
 if __name__ == "__main__":
-	recursive_cave(CAVES["start"], ",start,", {'start': False})
-# print("part 1: ")
-# print("part 2: ")
+
+	recursive_cave(CAVES["start"])
+	print("part 1: ", len(UNIQUE_PATHS))
+	recursive_cave(CAVES["start"], '', True)
+	print("part 2: ", len(UNIQUE_PATHS))
