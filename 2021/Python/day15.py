@@ -4,7 +4,9 @@ with open("input/day15.txt", 'r') as infile:
 	data = [list(map(int, line.rstrip())) for line in infile]
 data[0][0] = 0
 UNIQUE_PATH_LEFT = {}
-UNIQUE_PATH_RIGHT = {}
+UNIQUE_PATH = {}
+WIDTH = len(data)
+print(WIDTH)
 
 
 def display_graph(graph):
@@ -19,135 +21,127 @@ def display_graph(graph):
 	return
 
 
-def west(matrix, x, y, record):
+def west(x, y, path_taken):
 	# coord added together < width of matrix plus one and not a node
-	return (x - 1) + y <= 9 and record.get(f"m:{x-1},{y}", 1)
+	return x+y != WIDTH and (f"({x-1},{y})," not in path_taken)
 
 
-def north(matrix, x, y, record):
+def north(x, y, path_taken):
 	# north is < 9 and not a node
-	return x + (y + 1) <= 9 and record.get(f"m:{x},{y+1}", 1)
+	return x+y != WIDTH and (f"({x},{y+1})," not in path_taken)
 
 
-def east(matrix, x, y, record):
+def east(x, y, path_taken):
 	# east is < 9 and not a node
-	return (x + 1) + y <= 9 and record.get(f"m:{x+1},{y}", 1)
+	return x + y != WIDTH and (f"({x+1},{y})," not in path_taken)
 
 
-def south(matrix, x, y, record):
+def south(x, y, path_taken):
 	# south is below 9 and not a node
-	return x + (y - 1) <= 9 and record.get(f"m:{x},{y-1}", 1)
+	return x + y != WIDTH and (f"({x},{y-1})," not in path_taken)
 
 
-def basin_mapper(matrix, x, y, record):
-	"""RECURSION BABY, We start at our basin origin, record a key-string for our legal node and then step in to the
-	next movement.
-
-	:param matrix: list - list of lists matrix
-	:param x: int - x coordinate in our matrix
-	:param y: int - y coordinate in our matrix
-	:param record: dict - dictionary of nodes : False for bool key checks while pathing
-	:return: dict - the most up to date record of nodes
-	"""
-	print(f"we are at m:{x},{y}")
-	if x + y == 9:
-		print(f"we found endpoint {x},{y}")
-		return record
-	record[f"m:{x},{y}"] = False
+def recursive_move_right(matrix, risk, x, y, path_taken=''):
+	risk += matrix[x][y]
+	# print(f"we are at m:{x},{y}", risk)
+	if x + y == WIDTH:
+		# print(f"we found endpoint {x},{y}", risk)
+		if UNIQUE_PATH.get(f"({x},{y})", 9999999) > risk:
+			UNIQUE_PATH[f"({x},{y})"] = risk  # update new unique path
+			print(len(UNIQUE_PATH))
+		return  # return up one level of recursion to find more paths
+	if path_taken.count("),") > WIDTH:
+		return
+	path_taken += f"({x},{y}),"
 	match x, y:
 		case x, y if 0 < x < len(matrix)-1 and 0 < y < len(matrix[x])-1:  # case for matrix[x][y] has 4 neighbors.
-			if south(matrix, x, y, record):
-				record = basin_mapper(matrix, x, y-1, record)
-			if north(matrix, x, y, record):
-				record = basin_mapper(matrix, x, y+1, record)
-			if east(matrix, x, y, record):
-				record = basin_mapper(matrix, x+1, y, record)
-			if west(matrix, x, y, record):
-				record = basin_mapper(matrix, x-1, y, record)
+			if south(x, y, path_taken):
+				recursive_move(matrix, risk, x, y-1, path_taken)
+			if north(x, y, path_taken):
+				recursive_move(matrix, risk, x, y+1, path_taken)
+			if east(x, y, path_taken):
+				recursive_move(matrix, risk, x+1, y, path_taken)
+			if west(x, y, path_taken):
+				recursive_move(matrix, risk, x-1, y, path_taken)
 		# top edge case, always 3 neighbors: south north east
 		case x, y if x == 0 and 0 < y < len(matrix[x])-1:
-			if south(matrix, x, y, record):
-				record = basin_mapper(matrix, x, y-1, record)
-			if north(matrix, x, y, record):
-				record = basin_mapper(matrix, x, y+1, record)
-			if east(matrix, x, y, record):
-				record = basin_mapper(matrix, x+1, y, record)
+			if south(x, y, path_taken):
+				recursive_move(matrix, risk, x, y-1, path_taken)
+			if north(x, y, path_taken):
+				recursive_move(matrix, risk, x, y+1, path_taken)
+			if east(x, y, path_taken):
+				recursive_move(matrix, risk, x+1, y, path_taken)
 		# right edge case, always 3 neighbors: south east west
 		case x, y if 0 < x < len(matrix)-1 and y == len(matrix[x])-1:
-			if south(matrix, x, y, record):
-				record = basin_mapper(matrix, x, y-1, record)
-			if east(matrix, x, y, record):
-				record = basin_mapper(matrix, x+1, y, record)
-			if west(matrix, x, y, record):
-				record = basin_mapper(matrix, x-1, y, record)
+			if south(x, y, path_taken):
+				recursive_move(matrix, risk, x, y-1, path_taken)
+			if east(x, y, path_taken):
+				recursive_move(matrix, risk, x+1, y, path_taken)
+			if west(x, y, path_taken):
+				recursive_move(matrix, risk, x-1, y, path_taken)
 		# bottom edge case, always 3 neighbors: south north west
 		case x, y if x == len(matrix)-1 and 0 < y < len(matrix[x])-1:
-			if south(matrix, x, y, record):
-				record = basin_mapper(matrix, x, y-1, record)
-			if north(matrix, x, y, record):
-				record = basin_mapper(matrix, x, y+1, record)
-			if west(matrix, x, y, record):
-				record = basin_mapper(matrix, x-1, y, record)
+			if south(x, y, path_taken):
+				recursive_move(matrix, risk, x, y-1, path_taken)
+			if north(x, y, path_taken):
+				recursive_move(matrix, risk, x, y+1, path_taken)
+			if west(x, y, path_taken):
+				recursive_move(matrix, risk, x-1, y, path_taken)
 		# left edge case, always 3 neighbors: north east west
 		case x, y if 0 < x < len(matrix)-1 and y == 0:
-			if north(matrix, x, y, record):
-				record = basin_mapper(matrix, x, y+1, record)
-			if east(matrix, x, y, record):
-				record = basin_mapper(matrix, x+1, y, record)
-			if west(matrix, x, y, record):
-				record = basin_mapper(matrix, x-1, y, record)
+			if north(x, y, path_taken):
+				recursive_move(matrix, risk, x, y+1, path_taken)
+			if east(x, y, path_taken):
+				recursive_move(matrix, risk, x+1, y, path_taken)
+			if west(x, y, path_taken):
+				recursive_move(matrix, risk, x-1, y, path_taken)
 		# top left corner case, always 2 neighbors: north east
 		case x, y if x == 0 and y == 0:
-			if north(matrix, x, y, record):
-				record = basin_mapper(matrix, x, y+1, record)
-			if east(matrix, x, y, record):
-				record = basin_mapper(matrix, x+1, y, record)
+			if north(x, y, path_taken):
+				recursive_move(matrix, risk, x, y+1, path_taken)
+			if east(x, y, path_taken):
+				recursive_move(matrix, risk, x+1, y, path_taken)
 		# top right corner case, always 2 neighbors: south east
 		case x, y if x == 0 and y == len(matrix[x])-1:
-			if south(matrix, x, y, record):
-				record = basin_mapper(matrix, x, y-1, record)
-			if east(matrix, x, y, record):
-				record = basin_mapper(matrix, x+1, y, record)
+			if south(x, y, path_taken):
+				recursive_move(matrix, risk, x, y-1, path_taken)
+			if east(x, y, path_taken):
+				recursive_move(matrix, risk, x+1, y, path_taken)
 		# bottom left corner case, always 2 neighbors: north west
-		case x, y if x == len(matrix)-1 and y == 0:
-			if north(matrix, x, y, record):
-				record = basin_mapper(matrix, x, y+1, record)
-			if west(matrix, x, y, record):
-				record = basin_mapper(matrix, x-1, y, record)
+		case x, y if x == len(matrix) - 1 and y == 0:
+			if north(x, y, path_taken):
+				recursive_move(matrix, risk, x, y+1, path_taken)
+			if west(x, y, path_taken):
+				recursive_move(matrix, risk, x-1, y, path_taken)
 		# bottom right corner case, always 2 neighbors: south west
 		case x, y if x == len(matrix)-1 and y == len(matrix[x])-1:
-			if south(matrix, x, y, record):
-				record = basin_mapper(matrix, x, y-1, record)
-			if west(matrix, x, y, record):
-				record = basin_mapper(matrix, x-1, y, record)
-	return record
-
-
-def recursive_cave(connected_caves, path_taken='', part2=False, flag=False):
-	name = list(CAVES.keys())[list(CAVES.values()).index(connected_caves)]  # name of cave we are in
-	path_taken += f"{name},"
-	if name == "end":
-		UNIQUE_PATHS[path_taken] = True  # update new unique path
-		return  # return up one level of recursion to find more paths
-	for each in connected_caves:
-		if each == "start":
-			continue
-		new_flag = flag
-		if each.islower() and f"{each}," in path_taken:  # if each is a small cave and already in our path
-			if part2 and not new_flag:
-				new_flag = True
-			else:
-				continue
-		recursive_cave(CAVES[each], path_taken, part2, new_flag)
+			if south(x, y, path_taken):
+				recursive_move(matrix, risk, x, y-1, path_taken)
+			if west(x, y, path_taken):
+				recursive_move(matrix, risk, x-1, y, path_taken)
 	return  # this should be our return when theres no options to move
+
+
+def balance(path_dict, x=0, y=WIDTH-1):
+	while x < WIDTH:
+		path_dict[f"({x},{y})"] -= data[x][y]
+		x += 1
+		y -= 1
+	return path_dict
 
 
 if __name__ == "__main__":
 	display_graph(data)
-	path_taken = {}
-	path_taken = basin_mapper(data, 0, 0, path_taken)
-	# for n in range(len(data[0])):
-	# 	new = [data[_][n] for _ in range(len(data))]
-	# 	print(new)
-# print("part 1: ")
+	recursive_move(data, 0, 0, 0)
+	print(UNIQUE_PATH)
+	UNIQUE_PATH_LEFT = balance(UNIQUE_PATH.copy())
+	UNIQUE_PATH.clear()
+	print(UNIQUE_PATH)
+	print(UNIQUE_PATH_LEFT)
+	recursive_move(data, 0, WIDTH - 1, WIDTH - 1)
+	print(UNIQUE_PATH)
+	for each in UNIQUE_PATH:
+		totals = [UNIQUE_PATH[each] + UNIQUE_PATH_LEFT[each] for each in UNIQUE_PATH]
+	totals.sort()
+	print("part 1: ", totals[0])
 # print("part 2: ")
