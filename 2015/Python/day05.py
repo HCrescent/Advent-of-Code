@@ -1,13 +1,18 @@
 """Day 05 Advent_of_Code 2015"""
 with open("input/day05.txt", 'r') as infile:
 	str_list = [line.rstrip() for line in infile]
-alpha_set = list("abcdefghijklmnopqrstuvwxyz")
+alpha_list = list("abcdefghijklmnopqrstuvwxyz")
 vowels_set = {'a', 'e', 'i', 'o', 'u'}
-doubles_set = {char+char for char in alpha_set}
+doubles_set = {char+char for char in alpha_list}
 naughty_pairs = {"ab", "cd", "pq", "xy"}
 
 
-def naughtyOrNice(string):
+def naughtyOrNicePart1(string):
+	"""With a set of predetermined rules, evaluates a string as True if Nice, False if Naughty.
+
+	:param string: Str - string of letters to analyze
+	:return: Bool - False if Naughty, True if Nice
+	"""
 	# determine vowel count in string
 	vowel_count = 0
 	for char in string:
@@ -32,8 +37,30 @@ def naughtyOrNice(string):
 		return True
 
 
+def naughtyOrNicePart2(string):
+	"""With a set of predetermined rules, evaluates a string as True if Nice, False if Naughty.
+
+	:param string: Str - string of letters to analyze
+	:return: Bool - False if Naughty, True if Nice
+	"""
+	adjacents = [string[i] + string[i+1] for i in range(len(string)-1)]
+	# determine if there are non-overlapping repeat pairs of letters
+	for pair in adjacents:
+		if string.count(pair) > 1:
+			break
+	else:  # didn't break so string is Naughty
+		return False
+	# determine if there is a repeating character with any single char between them
+	for i in range(len(string)-2):
+		if string[i] == string[i+2]:
+			return True  # passed both criteria, string is NICE
+	else:  # still here? we didn't find anything second criteria, string is NAUGHTY
+		return False
+
+
 if __name__ == "__main__":
-	str_status = [naughtyOrNice(each) for each in str_list]
+	str_status = [naughtyOrNicePart1(each) for each in str_list]
 	print("part 1: ", str_status.count(True))
-	# print("part 2: ")
+	str_status = [naughtyOrNicePart2(each) for each in str_list]
+	print("part 2: ", str_status.count(True))
 
