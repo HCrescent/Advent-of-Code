@@ -45,7 +45,7 @@ def create_files(year, day):
                            f"\n"
                            f"\n"
                            f"if __name__ == \"__main__\":\n"
-                           f"\tprint(fun())\n"
+                           f"\tprint(data)\n"
                            f"\t# print(\"part 1: \")\n"
                            f"\t# print(\"part 2: \")\n")
             print(f"Script day{two_digit_day}.py created.")
