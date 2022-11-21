@@ -63,4 +63,3 @@ if __name__ == "__main__":
 	print("part 1: ", str_status.count(True))
 	str_status = [naughtyOrNicePart2(each) for each in str_list]
 	print("part 2: ", str_status.count(True))
-
