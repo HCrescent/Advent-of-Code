@@ -1,15 +1,64 @@
 """Day 15 Advent_of_Code 2021"""
-# NOTES: path limit should be 20 spaces, possibly less, end points should be the diagonal cross section
+# heuristic: horizontal + vertical cells to objective (because we cannot move diagonally it must take H+V moves)
+from random import randint
+
+
+class MinHeap:
+	def __init__(self, size):
+		self.heap = [None for _ in range(size)]
+		self.last_i = 0  # points to the end of the list (for adding new elements)
+		self.swap_i = 0  # index of current node
+		self.parent_i = 0  # index of the parent node
+
+	def insert(self, element):
+		self.heap[self.last_i] = element  # insert new element at last index
+		self.parent_i = self.last_i // 2  # set index of parent node
+		self.swap_i = self.last_i  # we want the swap index to be our current elements placement
+		self.last_i += 1  # increase index for the last element
+		while self.parent_i > -1:  # while we are not at the root (if the parent is -1 we current is at i = 0)
+			# if the parent node is larger than the current node
+			if self.heap[self.parent_i] > self.heap[self.swap_i]:
+				# swap the two nodes
+				self.heap[self.parent_i], self.heap[self.swap_i] = self.heap[self.swap_i], self.heap[self.parent_i]
+				# now the parent index becomes the current index
+				self.swap_i = self.parent_i
+				# calculate the index of the new parent node of our current node
+				self.parent_i = self.parent_i // 2
+			else:  # the parent node is larger than current node, we are done swapping things around
+				break
+
+	def remove(self, element):
+		self.last_i -= 1
+
+	def pop(self):
+		self.last_i -= 1
+
+	def printHeap(self):
+		print([_ for _ in self.heap if _])
+
+
+class AStarNode:
+	# things we need on init, weight of cell, its x and y position
+	def __init__(self, coord):
+		self.parent = None
+		self.coordinate = coord
+		self.data = data[coord[0]][coord[1]]  # in our problem we want to sum the weights of the paths
+		# distance from start + weight of cell
+		self.G = abs(start_position[0] - coord[0]) + abs(start_position[1] - coord[1]) + data[coord[0]][coord[1]]
+		# distance from end (exact)
+		self.H = abs(end_position[0] - coord[0]) + abs(end_position[1] - coord[1])
+		self.F = self.G + self.H
+
+
 with open("input/day15.txt", 'r') as infile:
-	data = [list(map(int, line.rstrip())) for line in infile]
-data[0][0] = 0
+	data = [[int(char) for char in line.rstrip()] for line in infile]
 UNIQUE_PATH_LEFT = {}
 UNIQUE_PATH = {}
 WIDTH = len(data)
-print(WIDTH)
+print("width:", WIDTH)
 
 
-def display_graph(graph):
+def display_graphXY(graph):
 	"""Displays matrix in proper X, Y orientation for human viewing.
 
 	:param graph: list of lists - a matrix
@@ -21,127 +70,36 @@ def display_graph(graph):
 	return
 
 
-def west(x, y, path_taken):
-	# coord added together < width of matrix plus one and not a node
-	return x+y != WIDTH and (f"({x-1},{y})," not in path_taken)
+def display_graph(graph):
+	for _ in graph:
+		print(_)
 
 
-def north(x, y, path_taken):
-	# north is < 9 and not a node
-	return x+y != WIDTH and (f"({x},{y+1})," not in path_taken)
-
-
-def east(x, y, path_taken):
-	# east is < 9 and not a node
-	return x + y != WIDTH and (f"({x+1},{y})," not in path_taken)
-
-
-def south(x, y, path_taken):
-	# south is below 9 and not a node
-	return x + y != WIDTH and (f"({x},{y-1})," not in path_taken)
-
-
-def recursive_move_right(matrix, risk, x, y, path_taken=''):
-	risk += matrix[x][y]
-	# print(f"we are at m:{x},{y}", risk)
-	if x + y == WIDTH:
-		# print(f"we found endpoint {x},{y}", risk)
-		if UNIQUE_PATH.get(f"({x},{y})", 9999999) > risk:
-			UNIQUE_PATH[f"({x},{y})"] = risk  # update new unique path
-			print(len(UNIQUE_PATH))
-		return  # return up one level of recursion to find more paths
-	if path_taken.count("),") > WIDTH:
-		return
-	path_taken += f"({x},{y}),"
-	match x, y:
-		case x, y if 0 < x < len(matrix)-1 and 0 < y < len(matrix[x])-1:  # case for matrix[x][y] has 4 neighbors.
-			if south(x, y, path_taken):
-				recursive_move(matrix, risk, x, y-1, path_taken)
-			if north(x, y, path_taken):
-				recursive_move(matrix, risk, x, y+1, path_taken)
-			if east(x, y, path_taken):
-				recursive_move(matrix, risk, x+1, y, path_taken)
-			if west(x, y, path_taken):
-				recursive_move(matrix, risk, x-1, y, path_taken)
-		# top edge case, always 3 neighbors: south north east
-		case x, y if x == 0 and 0 < y < len(matrix[x])-1:
-			if south(x, y, path_taken):
-				recursive_move(matrix, risk, x, y-1, path_taken)
-			if north(x, y, path_taken):
-				recursive_move(matrix, risk, x, y+1, path_taken)
-			if east(x, y, path_taken):
-				recursive_move(matrix, risk, x+1, y, path_taken)
-		# right edge case, always 3 neighbors: south east west
-		case x, y if 0 < x < len(matrix)-1 and y == len(matrix[x])-1:
-			if south(x, y, path_taken):
-				recursive_move(matrix, risk, x, y-1, path_taken)
-			if east(x, y, path_taken):
-				recursive_move(matrix, risk, x+1, y, path_taken)
-			if west(x, y, path_taken):
-				recursive_move(matrix, risk, x-1, y, path_taken)
-		# bottom edge case, always 3 neighbors: south north west
-		case x, y if x == len(matrix)-1 and 0 < y < len(matrix[x])-1:
-			if south(x, y, path_taken):
-				recursive_move(matrix, risk, x, y-1, path_taken)
-			if north(x, y, path_taken):
-				recursive_move(matrix, risk, x, y+1, path_taken)
-			if west(x, y, path_taken):
-				recursive_move(matrix, risk, x-1, y, path_taken)
-		# left edge case, always 3 neighbors: north east west
-		case x, y if 0 < x < len(matrix)-1 and y == 0:
-			if north(x, y, path_taken):
-				recursive_move(matrix, risk, x, y+1, path_taken)
-			if east(x, y, path_taken):
-				recursive_move(matrix, risk, x+1, y, path_taken)
-			if west(x, y, path_taken):
-				recursive_move(matrix, risk, x-1, y, path_taken)
-		# top left corner case, always 2 neighbors: north east
-		case x, y if x == 0 and y == 0:
-			if north(x, y, path_taken):
-				recursive_move(matrix, risk, x, y+1, path_taken)
-			if east(x, y, path_taken):
-				recursive_move(matrix, risk, x+1, y, path_taken)
-		# top right corner case, always 2 neighbors: south east
-		case x, y if x == 0 and y == len(matrix[x])-1:
-			if south(x, y, path_taken):
-				recursive_move(matrix, risk, x, y-1, path_taken)
-			if east(x, y, path_taken):
-				recursive_move(matrix, risk, x+1, y, path_taken)
-		# bottom left corner case, always 2 neighbors: north west
-		case x, y if x == len(matrix) - 1 and y == 0:
-			if north(x, y, path_taken):
-				recursive_move(matrix, risk, x, y+1, path_taken)
-			if west(x, y, path_taken):
-				recursive_move(matrix, risk, x-1, y, path_taken)
-		# bottom right corner case, always 2 neighbors: south west
-		case x, y if x == len(matrix)-1 and y == len(matrix[x])-1:
-			if south(x, y, path_taken):
-				recursive_move(matrix, risk, x, y-1, path_taken)
-			if west(x, y, path_taken):
-				recursive_move(matrix, risk, x-1, y, path_taken)
-	return  # this should be our return when theres no options to move
-
-
-def balance(path_dict, x=0, y=WIDTH-1):
-	while x < WIDTH:
-		path_dict[f"({x},{y})"] -= data[x][y]
-		x += 1
-		y -= 1
-	return path_dict
+def aStarTraverse(graph, start, end):
+	open_nodes = [AStarNode(start)]
+	closed_nodes = []
+	for each in open_nodes:
+		print(each.F)
+	pass
 
 
 if __name__ == "__main__":
-	display_graph(data)
-	recursive_move(data, 0, 0, 0)
-	print(UNIQUE_PATH)
-	UNIQUE_PATH_LEFT = balance(UNIQUE_PATH.copy())
-	UNIQUE_PATH.clear()
-	print(UNIQUE_PATH)
-	print(UNIQUE_PATH_LEFT)
-	recursive_move(data, 0, WIDTH - 1, WIDTH - 1)
-	print(UNIQUE_PATH)
-	for each in UNIQUE_PATH:
-		totals = [UNIQUE_PATH[each] + UNIQUE_PATH_LEFT[each] for each in UNIQUE_PATH]
-	totals.sort()
-	print("part 1: ", totals[0])
-# print("part 2: ")
+	start_position = (0, 0)
+	end_position = (WIDTH-1, WIDTH-1)
+	display_graphXY(data)
+	aStarTraverse(data, start_position, end_position)
+	origin = AStarNode((0, 1))
+	one = AStarNode((1, 1))
+	two = AStarNode((2, 0))
+	print("part 1: ")
+	print("origin: Coordinate:", origin.coordinate, "weight:", origin.data, "G:", origin.G, "H:", origin.H, "F:", origin.F)
+	print("one: Coordinate:", one.coordinate, "weight:", one.data, "G:", one.G, "H:", one.H, "F:", one.F)
+	print("two: Coordinate:", two.coordinate, "weight:", two.data, "G:", two.G, "H:", two.H, "F:", two.F)
+	# print("part 2: ")
+	test_heap = MinHeap(100_000)
+	temp_list = [randint(1, 100) for _ in range(50)]
+	temp_list.append(1)
+	print(len(temp_list))
+	for _ in temp_list:
+		test_heap.insert(_)
+	test_heap.printHeap()
