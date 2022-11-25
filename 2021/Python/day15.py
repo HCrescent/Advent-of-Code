@@ -4,38 +4,35 @@ from random import randint
 
 
 class MinHeap:
+	# min priority queue
 	def __init__(self, size):
 		self.heap = [None for _ in range(size)]
 		self.last_i = 0  # points to the end of the list (for adding new elements)
-		self.curr_i = 0  # index of current node
-		self.parent_i = 0  # index of the parent node
-		self.child_l = 0  # index of left child
-		self.child_r = 0  # index of right child
 
 	def insert(self, element):
 		""" Inserts an element at the bottom of our "virtual" tree, and then bubbles the value up accordingly
 
-		:param element:
-		:return:
+		:param element: Any comparable type data
 		"""
-		self.heap[self.last_i] = element  # insert new element at last index
-		self.parent_i = self.last_i // 2  # set index of parent node
-		self.curr_i = self.last_i  # we want the swap index to be our current elements placement
+		try:
+			self.heap[self.last_i] = element  # insert new element at last index
+		except IndexError:
+			print("Index Error, needed more heap space.")
+			raise SystemExit(1)
+		parent_i = (self.last_i-1) // 2  # set index of parent node
+		curr_i = self.last_i  # we want the swap index to be our current elements placement
 		self.last_i += 1  # increase index for the last element
-		while self.parent_i > -1:  # while we are not at the root (if the parent is -1 current is at i = 0)
+		while parent_i > -1:  # while we are not at the root (if the parent is -1 current is at i = 0)
 			# if the parent node is larger than the current node
-			if self.heap[self.parent_i] > self.heap[self.curr_i]:
+			if self.heap[parent_i] > self.heap[curr_i]:
 				# swap the two nodes
-				self.heap[self.parent_i], self.heap[self.curr_i] = self.heap[self.curr_i], self.heap[self.parent_i]
+				self.heap[parent_i], self.heap[curr_i] = self.heap[curr_i], self.heap[parent_i]
 				# now the parent index becomes the current index
-				self.curr_i = self.parent_i
+				curr_i = parent_i
 				# calculate the index of the new parent node of our current node
-				self.parent_i = self.parent_i // 2
+				parent_i = (parent_i-1) // 2
 			else:  # the parent node is larger than current node, we are done swapping things around
 				break
-
-	def remove(self, element):
-		self.last_i -= 1
 
 	def pop(self):
 		""" removes root node (element at position 0), adjusts the heap and returns the node/element
@@ -47,19 +44,39 @@ class MinHeap:
 		self.heap[0] = None  # replace that spot with our empty value
 		# swap root and last nodes
 		self.heap[self.last_i], self.heap[0] = self.heap[0], self.heap[self.last_i]
-		self.curr_i = 0  # set our current index to node 0
-		self.child_l = self.curr_i*2 + 1  # set index of left child
-		self.child_r = self.curr_i*2 + 2  # set index of right child
-		# while our current node has at least one child node
-		while self.heap[self.child_l] is not None or self.heap[self.child_r] is not None:
+		curr_i = 0  # set our current index to node 0
+		# Run until match case: no children or compared child fails
+		while True:
 			# at the start of each iteration update the children node pointers
-			self.child_l = self.curr_i * 2 + 1  # set new index of left child
-			self.child_r = self.curr_i * 2 + 2  # set new index of right child
-
-		return tmp_hold
+			child_l = curr_i * 2 + 1  # set new index of left child
+			child_r = curr_i * 2 + 2  # set new index of right child
+			# build our case expression
+			try:
+				children = f"{0 if self.heap[child_l] is None else 1}{0 if self.heap[child_r] is None else 1}"
+			except IndexError:
+				children = "00"
+			match children:
+				case "11":  # both children nodes exist
+					if self.heap[child_l] <= self.heap[child_r]:
+						compared_child = child_l
+					else:
+						compared_child = child_r
+				case "10":  # right child is None, left child exists
+					compared_child = child_l
+				case "01":  # left child is None, right child exists
+					compared_child = child_r
+				case _:  # both children are None
+					break
+			# if the current node is greater than the compared child, swap them and update current node
+			if self.heap[curr_i] > self.heap[compared_child]:
+				self.heap[curr_i], self.heap[compared_child] = self.heap[compared_child], self.heap[curr_i]
+				curr_i = compared_child
+			else:  # current node is in its correct spot we are done
+				break
+		return tmp_hold  # return our popped value
 
 	def printHeap(self):
-		print([_ for _ in self.heap if _ is not None])
+		print([_ for _ in self.heap[:self.last_i]])
 
 
 class AStarNode:
@@ -121,12 +138,17 @@ if __name__ == "__main__":
 	print("one: Coordinate:", one.coordinate, "weight:", one.data, "G:", one.G, "H:", one.H, "F:", one.F)
 	print("two: Coordinate:", two.coordinate, "weight:", two.data, "G:", two.G, "H:", two.H, "F:", two.F)
 	# print("part 2: ")
-	test_heap = MinHeap(100_000)
-	temp_list = [randint(1, 100) for _ in range(10)]
+	test_heap = MinHeap(10)
+	temp_list = [randint(0, 100) for _ in range(20)]
 	print(len(temp_list))
 	for _ in temp_list:
 		test_heap.insert(_)
 	test_heap.printHeap()
+	temp_list.sort()
+	print(temp_list, "Sorted")
 	test_list = []
 	while test_heap.last_i > 0:
-		print(test_heap.pop())
+		test_list.append(test_heap.pop())
+	print(test_list, "popped heap")
+	print(temp_list == test_list)
+
