@@ -7,21 +7,28 @@ class MinHeap:
 	def __init__(self, size):
 		self.heap = [None for _ in range(size)]
 		self.last_i = 0  # points to the end of the list (for adding new elements)
-		self.swap_i = 0  # index of current node
+		self.curr_i = 0  # index of current node
 		self.parent_i = 0  # index of the parent node
+		self.child_l = 0  # index of left child
+		self.child_r = 0  # index of right child
 
 	def insert(self, element):
+		""" Inserts an element at the bottom of our "virtual" tree, and then bubbles the value up accordingly
+
+		:param element:
+		:return:
+		"""
 		self.heap[self.last_i] = element  # insert new element at last index
 		self.parent_i = self.last_i // 2  # set index of parent node
-		self.swap_i = self.last_i  # we want the swap index to be our current elements placement
+		self.curr_i = self.last_i  # we want the swap index to be our current elements placement
 		self.last_i += 1  # increase index for the last element
-		while self.parent_i > -1:  # while we are not at the root (if the parent is -1 we current is at i = 0)
+		while self.parent_i > -1:  # while we are not at the root (if the parent is -1 current is at i = 0)
 			# if the parent node is larger than the current node
-			if self.heap[self.parent_i] > self.heap[self.swap_i]:
+			if self.heap[self.parent_i] > self.heap[self.curr_i]:
 				# swap the two nodes
-				self.heap[self.parent_i], self.heap[self.swap_i] = self.heap[self.swap_i], self.heap[self.parent_i]
+				self.heap[self.parent_i], self.heap[self.curr_i] = self.heap[self.curr_i], self.heap[self.parent_i]
 				# now the parent index becomes the current index
-				self.swap_i = self.parent_i
+				self.curr_i = self.parent_i
 				# calculate the index of the new parent node of our current node
 				self.parent_i = self.parent_i // 2
 			else:  # the parent node is larger than current node, we are done swapping things around
@@ -31,10 +38,28 @@ class MinHeap:
 		self.last_i -= 1
 
 	def pop(self):
-		self.last_i -= 1
+		""" removes root node (element at position 0), adjusts the heap and returns the node/element
+
+		:return: any type - heap should take any comparable element so whatever type is contained is being returned
+		"""
+		self.last_i -= 1  # move back one to the last element in the list
+		tmp_hold = self.heap[0]  # temporarily hold the value until we return it
+		self.heap[0] = None  # replace that spot with our empty value
+		# swap root and last nodes
+		self.heap[self.last_i], self.heap[0] = self.heap[0], self.heap[self.last_i]
+		self.curr_i = 0  # set our current index to node 0
+		self.child_l = self.curr_i*2 + 1  # set index of left child
+		self.child_r = self.curr_i*2 + 2  # set index of right child
+		# while our current node has at least one child node
+		while self.heap[self.child_l] is not None or self.heap[self.child_r] is not None:
+			# at the start of each iteration update the children node pointers
+			self.child_l = self.curr_i * 2 + 1  # set new index of left child
+			self.child_r = self.curr_i * 2 + 2  # set new index of right child
+
+		return tmp_hold
 
 	def printHeap(self):
-		print([_ for _ in self.heap if _])
+		print([_ for _ in self.heap if _ is not None])
 
 
 class AStarNode:
@@ -97,9 +122,11 @@ if __name__ == "__main__":
 	print("two: Coordinate:", two.coordinate, "weight:", two.data, "G:", two.G, "H:", two.H, "F:", two.F)
 	# print("part 2: ")
 	test_heap = MinHeap(100_000)
-	temp_list = [randint(1, 100) for _ in range(50)]
-	temp_list.append(1)
+	temp_list = [randint(1, 100) for _ in range(10)]
 	print(len(temp_list))
 	for _ in temp_list:
 		test_heap.insert(_)
 	test_heap.printHeap()
+	test_list = []
+	while test_heap.last_i > 0:
+		print(test_heap.pop())
