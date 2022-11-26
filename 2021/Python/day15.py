@@ -1,6 +1,5 @@
 """Day 15 Advent_of_Code 2021"""
 # heuristic: horizontal + vertical cells to objective (because we cannot move diagonally it must take H+V moves)
-from random import randint
 
 
 class MinHeap:
@@ -91,6 +90,21 @@ class AStarNode:
 		self.H = abs(end_position[0] - coord[0]) + abs(end_position[1] - coord[1])
 		self.F = self.G + self.H
 
+	def __eq__(self, other):
+		return self.F == other.F
+
+	def __lt__(self, other):
+		return self.F < other.F
+
+	def __le__(self, other):
+		return self.F <= other.F
+
+	def __repr__(self):
+		return f"coord: {self.coordinate}, G: {self.G}, H: {self.H}, F:{self.F}"
+
+	def __hash__(self):  # we want to identify unique nodes by their position in the grid
+		return hash(self.coordinate)
+
 
 with open("input/day15.txt", 'r') as infile:
 	data = [[int(char) for char in line.rstrip()] for line in infile]
@@ -133,22 +147,13 @@ if __name__ == "__main__":
 	origin = AStarNode((0, 1))
 	one = AStarNode((1, 1))
 	two = AStarNode((2, 0))
+	three = AStarNode((0, 2))
 	print("part 1: ")
 	print("origin: Coordinate:", origin.coordinate, "weight:", origin.data, "G:", origin.G, "H:", origin.H, "F:", origin.F)
 	print("one: Coordinate:", one.coordinate, "weight:", one.data, "G:", one.G, "H:", one.H, "F:", one.F)
 	print("two: Coordinate:", two.coordinate, "weight:", two.data, "G:", two.G, "H:", two.H, "F:", two.F)
+	print("three: Coordinate:", three.coordinate, "weight:", three.data, "G:", three.G, "H:", three.H, "F:", three.F)
 	# print("part 2: ")
-	test_heap = MinHeap(10)
-	temp_list = [randint(0, 100) for _ in range(20)]
-	print(len(temp_list))
-	for _ in temp_list:
-		test_heap.insert(_)
-	test_heap.printHeap()
-	temp_list.sort()
-	print(temp_list, "Sorted")
-	test_list = []
-	while test_heap.last_i > 0:
-		test_list.append(test_heap.pop())
-	print(test_list, "popped heap")
-	print(temp_list == test_list)
-
+	node_list = [origin, one, two, three]
+	node_set = set(node_list)
+	print(node_set)
