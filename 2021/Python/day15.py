@@ -33,7 +33,7 @@ class MinHeap:
 			else:  # the parent node is larger than current node, we are done swapping things around
 				break
 
-	def pop(self):
+	def pop(self) -> object:
 		""" removes root node (element at position 0), adjusts the heap and returns the node/element
 
 		:return: any type - heap should take any comparable element so whatever type is contained is being returned
@@ -80,12 +80,12 @@ class MinHeap:
 
 class AStarNode:
 	# things we need on init, weight of cell, its x and y position
-	def __init__(self, coord):
-		self.parent = None
+	def __init__(self, coord: tuple, came_from):
+		self.parent = came_from  # need parent node in order to retrace the path
 		self.coordinate = coord
-		self.data = data[coord[0]][coord[1]]  # in our problem we want to sum the weights of the paths
-		# distance from start + weight of cell
-		self.G = abs(start_position[0] - coord[0]) + abs(start_position[1] - coord[1]) + data[coord[0]][coord[1]]
+		self.weight = data[coord[0]][coord[1]]  # in our problem we want to sum the weights of the paths
+		#  the cost of its path taken, (parent g plus self weight)
+		self.G = self.parent.G + self.weight if self.parent is not None else 0
 		# distance from end (exact)
 		self.H = abs(end_position[0] - coord[0]) + abs(end_position[1] - coord[1])
 		self.F = self.G + self.H
@@ -131,31 +131,50 @@ def display_graph(graph):
 		print(_)
 
 
+def tracePath(node: AStarNode):
+	path_list = []
+	while node.parent is not None:
+		path_list.append(node.coordinate)
+		node = node.parent
+	return path_list[::-1]
+
+
 # noinspection PyUnresolvedReferences
-def aStarTraverse(graph, start, end):
+def aStarTraverse(graph, start: tuple, end: tuple):
 	length = len(graph)
 	width = len(graph[0])
 	open_nodes = MinHeap(length*width)  # maximum heap size number grid spaces
-	open_nodes.insert(AStarNode(start))
+	open_nodes.insert(AStarNode(start, None))
 	closed_nodes = set()
-	neighbors = [(1, 0), (-1, 0), (0, 1), (0, -1)]
-	while True:
+	movements = ((1, 0), (-1, 0), (0, 1), (0, -1))
+	while open_nodes.last_i > 0:  # while open nodes isn't empty
 		current_node = open_nodes.pop()  # pop current node from priority queue
-		closed_nodes.add(current_node)  # add it to the closed set
-		for each in neighbors:
+		if current_node.coordinate == end:
+			return current_node.G, tracePath(current_node)  # return path cost and path trace
+		closed_nodes.add(current_node.coordinate)  # add it to the closed set
+		for each in movements:  # each possible movement from here
+			# calculate the new position based on the movement tuple
 			new_coordinate = (current_node.coordinate[0] + each[0], current_node.coordinate[1] + each[1])
+			# due to python recognizing negative index as displacement from the end, i need to make these checks
+			# because an index error wont raise on access despite, but for our case a negative number means were are
+			# out of bounds of our graph matrix
 			if new_coordinate[0] > -1 and new_coordinate[1] > -1:
-				try:
+				try:  # making sure a node can exist at this spot, by checking data existing in the graph
 					graph[new_coordinate[0]][new_coordinate[1]]
-				except IndexError:
-					print(new_coordinate, "OUT OF RANGE")
+				except IndexError:  # the test resulted in index error out of graph bounds
+					continue  # don't access and skip to next iteration
 				if new_coordinate not in closed_nodes:
-					open_nodes.insert(AStarNode(new_coordinate))  # add node to open nodes
-	pass
+					open_nodes.insert(AStarNode(new_coordinate, current_node))  # add node to open nodes\
+	return "Failed to find the end"
 
 
 if __name__ == "__main__":
+	answer_trace1 = [(1, 0), (2, 0), (2, 1), (2, 2), (2, 3), (2, 4), (2, 5), (2, 6), (3, 6), (3, 7), (4, 7), (5, 7), (5, 8), (6, 8), (7, 8), (8, 8), (8, 9), (9, 9)]
+	answer_trace2 = [(1, 0), (2, 0), (2, 1), (2, 2), (2, 3), (2, 4), (2, 5), (2, 6), (3, 6), (3, 7), (4, 7), (4, 8), (5, 8), (6, 8), (7, 8), (8, 8), (8, 9), (9, 9)]
 	start_position = (0, 0)
 	end_position = (WIDTH-1, WIDTH-1)
 	display_graphXY(data)
-	aStarTraverse(data, start_position, end_position)
+	path_cost, path_trace = aStarTraverse(data, start_position, end_position)
+	print(path_cost)
+	if path_trace == answer_trace1 or path_trace == answer_trace2:
+		print("match")
