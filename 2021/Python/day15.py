@@ -131,11 +131,26 @@ def display_graph(graph):
 		print(_)
 
 
+# noinspection PyUnresolvedReferences
 def aStarTraverse(graph, start, end):
-	open_nodes = [AStarNode(start)]
-	closed_nodes = []
-	for each in open_nodes:
-		print(each.F)
+	length = len(graph)
+	width = len(graph[0])
+	open_nodes = MinHeap(length*width)  # maximum heap size number grid spaces
+	open_nodes.insert(AStarNode(start))
+	closed_nodes = set()
+	neighbors = [(1, 0), (-1, 0), (0, 1), (0, -1)]
+	while True:
+		current_node = open_nodes.pop()  # pop current node from priority queue
+		closed_nodes.add(current_node)  # add it to the closed set
+		for each in neighbors:
+			new_coordinate = (current_node.coordinate[0] + each[0], current_node.coordinate[1] + each[1])
+			if new_coordinate[0] > -1 and new_coordinate[1] > -1:
+				try:
+					graph[new_coordinate[0]][new_coordinate[1]]
+				except IndexError:
+					print(new_coordinate, "OUT OF RANGE BITCH")
+				if new_coordinate not in closed_nodes:
+					open_nodes.insert(AStarNode(new_coordinate))  # add node to open nodes
 	pass
 
 
@@ -144,16 +159,3 @@ if __name__ == "__main__":
 	end_position = (WIDTH-1, WIDTH-1)
 	display_graphXY(data)
 	aStarTraverse(data, start_position, end_position)
-	origin = AStarNode((0, 1))
-	one = AStarNode((1, 1))
-	two = AStarNode((2, 0))
-	three = AStarNode((0, 2))
-	print("part 1: ")
-	print("origin: Coordinate:", origin.coordinate, "weight:", origin.data, "G:", origin.G, "H:", origin.H, "F:", origin.F)
-	print("one: Coordinate:", one.coordinate, "weight:", one.data, "G:", one.G, "H:", one.H, "F:", one.F)
-	print("two: Coordinate:", two.coordinate, "weight:", two.data, "G:", two.G, "H:", two.H, "F:", two.F)
-	print("three: Coordinate:", three.coordinate, "weight:", three.data, "G:", three.G, "H:", three.H, "F:", three.F)
-	# print("part 2: ")
-	node_list = [origin, one, two, three]
-	node_set = set(node_list)
-	print(node_set)
