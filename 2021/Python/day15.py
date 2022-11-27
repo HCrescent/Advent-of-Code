@@ -33,7 +33,7 @@ class MinHeap:
 			else:  # the parent node is larger than current node, we are done swapping things around
 				break
 
-	def pop(self) -> object:
+	def pop(self):
 		""" removes root node (element at position 0), adjusts the heap and returns the node/element
 
 		:return: any type - heap should take any comparable element so whatever type is contained is being returned
@@ -85,10 +85,17 @@ class AStarNode:
 		self.coordinate = coord
 		self.weight = data[coord[0]][coord[1]]  # in our problem we want to sum the weights of the paths
 		#  the cost of its path taken, (parent g plus self weight)
-		self.G = self.parent.G + self.weight if self.parent is not None else 0
+		self.G = (self.parent.G + self.weight) if self.parent is not None else 0  # first node must have G == 0
 		# distance from end (exact)
 		self.H = abs(end_position[0] - coord[0]) + abs(end_position[1] - coord[1])
 		self.F = self.G + self.H
+
+	def tracePath(self):
+		if self.parent is None:
+			return [self.coordinate]
+		pathing = self.parent.tracePath()
+		pathing = pathing + [self.coordinate]
+		return pathing
 
 	def __eq__(self, other):
 		return self.F == other.F
@@ -131,14 +138,6 @@ def display_graph(graph):
 		print(_)
 
 
-def tracePath(node: AStarNode):
-	path_list = []
-	while node.parent is not None:
-		path_list.append(node.coordinate)
-		node = node.parent
-	return path_list[::-1]
-
-
 # noinspection PyUnresolvedReferences
 def aStarTraverse(graph, start: tuple, end: tuple):
 	length = len(graph)
@@ -150,7 +149,7 @@ def aStarTraverse(graph, start: tuple, end: tuple):
 	while open_nodes.last_i > 0:  # while open nodes isn't empty
 		current_node = open_nodes.pop()  # pop current node from priority queue
 		if current_node.coordinate == end:
-			return current_node.G, tracePath(current_node)  # return path cost and path trace
+			return current_node.G, current_node.tracePath()  # return path cost and path trace
 		closed_nodes.add(current_node.coordinate)  # add it to the closed set
 		for each in movements:  # each possible movement from here
 			# calculate the new position based on the movement tuple
@@ -169,12 +168,8 @@ def aStarTraverse(graph, start: tuple, end: tuple):
 
 
 if __name__ == "__main__":
-	answer_trace1 = [(1, 0), (2, 0), (2, 1), (2, 2), (2, 3), (2, 4), (2, 5), (2, 6), (3, 6), (3, 7), (4, 7), (5, 7), (5, 8), (6, 8), (7, 8), (8, 8), (8, 9), (9, 9)]
-	answer_trace2 = [(1, 0), (2, 0), (2, 1), (2, 2), (2, 3), (2, 4), (2, 5), (2, 6), (3, 6), (3, 7), (4, 7), (4, 8), (5, 8), (6, 8), (7, 8), (8, 8), (8, 9), (9, 9)]
 	start_position = (0, 0)
 	end_position = (WIDTH-1, WIDTH-1)
-	display_graphXY(data)
 	path_cost, path_trace = aStarTraverse(data, start_position, end_position)
 	print(path_cost)
-	if path_trace == answer_trace1 or path_trace == answer_trace2:
-		print("match")
+	print(path_trace)
