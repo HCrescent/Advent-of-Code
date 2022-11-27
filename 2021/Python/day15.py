@@ -1,5 +1,7 @@
 """Day 15 Advent_of_Code 2021"""
 # heuristic: horizontal + vertical cells to objective (because we cannot move diagonally it must take H+V moves)
+import time
+start = time.time()
 
 
 class MinHeap:
@@ -121,23 +123,6 @@ WIDTH = len(data)
 print("width:", WIDTH)
 
 
-def display_graphXY(graph):
-	"""Displays matrix in proper X, Y orientation for human viewing.
-
-	:param graph: list of lists - a matrix
-	:return:
-	"""
-	for i in range(len(graph[0]))[::-1]:
-		flipped_list = [graph[_][i] for _ in range(len(graph))]
-		print(flipped_list)
-	return
-
-
-def display_graph(graph):
-	for _ in graph:
-		print(_)
-
-
 # noinspection PyUnresolvedReferences
 def aStarTraverse(graph, start: tuple, end: tuple):
 	length = len(graph)
@@ -147,6 +132,7 @@ def aStarTraverse(graph, start: tuple, end: tuple):
 	closed_nodes = set()
 	movements = ((1, 0), (-1, 0), (0, 1), (0, -1))
 	while open_nodes.last_i > 0:  # while open nodes isn't empty
+		# noinspection PyNoneFunctionAssignment
 		current_node = open_nodes.pop()  # pop current node from priority queue
 		if current_node.coordinate == end:
 			return current_node.G, current_node.tracePath()  # return path cost and path trace
@@ -173,3 +159,6 @@ if __name__ == "__main__":
 	path_cost, path_trace = aStarTraverse(data, start_position, end_position)
 	print(path_cost)
 	print(path_trace)
+	end = time.time()
+	total_time = end - start
+	print("\n" + str(total_time))
