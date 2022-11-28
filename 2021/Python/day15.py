@@ -1,7 +1,7 @@
 """Day 15 Advent_of_Code 2021"""
 # heuristic: horizontal + vertical cells to objective (because we cannot move diagonally it must take H+V moves)
-import time
-start = time.time()
+with open("input/day15.txt", 'r') as infile:
+	data = [[int(char) for char in line.rstrip()] for line in infile]
 
 
 class MinHeap:
@@ -115,14 +115,6 @@ class AStarNode:
 		return hash(self.coordinate)
 
 
-with open("input/day15.txt", 'r') as infile:
-	data = [[int(char) for char in line.rstrip()] for line in infile]
-UNIQUE_PATH_LEFT = {}
-UNIQUE_PATH = {}
-WIDTH = len(data)
-print("width:", WIDTH)
-
-
 # noinspection PyUnresolvedReferences
 def aStarTraverse(graph, start: tuple, end: tuple):
 	length = len(graph)
@@ -141,7 +133,7 @@ def aStarTraverse(graph, start: tuple, end: tuple):
 			# calculate the new position based on the movement tuple
 			new_coordinate = (current_node.coordinate[0] + each[0], current_node.coordinate[1] + each[1])
 			# due to python recognizing negative index as displacement from the end, i need to make these checks
-			# because an index error wont raise on access despite, but for our case a negative number means were are
+			# because an index error wont raise on access, but for our case a negative number means were are
 			# out of bounds of our graph matrix
 			if new_coordinate[0] > -1 and new_coordinate[1] > -1:
 				try:  # making sure a node can exist at this spot, by checking data existing in the graph
@@ -153,12 +145,18 @@ def aStarTraverse(graph, start: tuple, end: tuple):
 	return "Failed to find the end"
 
 
+def expandGraph(matrix):
+	new_graph = matrix.copy()
+	return new_graph
+
+
+def display_graph(graph):
+	for _ in graph:
+		print(_)
+
+
 if __name__ == "__main__":
 	start_position = (0, 0)
-	end_position = (WIDTH-1, WIDTH-1)
+	end_position = (len(data)-1, len(data[0])-1)
 	path_cost, path_trace = aStarTraverse(data, start_position, end_position)
-	print(path_cost)
-	print(path_trace)
-	end = time.time()
-	total_time = end - start
-	print("\n" + str(total_time))
+	print("part 1: ", path_cost)
