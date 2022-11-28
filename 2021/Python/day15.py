@@ -1,7 +1,7 @@
 """Day 15 Advent_of_Code 2021"""
 # heuristic: horizontal + vertical cells to objective (because we cannot move diagonally it must take H+V moves)
 with open("input/day15.txt", 'r') as infile:
-	data = [[int(char) for char in line.rstrip()] for line in infile]
+	data = [[int(char) for char in line.rstrip()] for line in infile]  # two dimensional list/matrix grid
 
 
 class MinHeap:
@@ -83,6 +83,11 @@ class MinHeap:
 class AStarNode:
 	# things we need on init, weight of cell, its x and y position
 	def __init__(self, coord: tuple, came_from):
+		"""
+
+		:param coord: Tuple - (x, y) form of 2D list location
+		:param came_from: AStarNode - the node we are coming from to move here, None for starting node
+		"""
 		self.parent = came_from  # need parent node in order to retrace the path
 		self.coordinate = coord
 		self.weight = data[coord[0]][coord[1]]  # in our problem we want to sum the weights of the paths
@@ -93,12 +98,17 @@ class AStarNode:
 		self.F = self.G + self.H
 
 	def tracePath(self):
+		""" generates the path taken by recursively climbing the tree and bringing all the coordinates down
+
+		:return: List - list of tuples which are the coordinates of the path taken
+		"""
 		if self.parent is None:
 			return [self.coordinate]
 		pathing = self.parent.tracePath()
 		pathing = pathing + [self.coordinate]
 		return pathing
 
+	# these comparison operators are overwritten so we can store AStarNodes compared by F value in our heap
 	def __eq__(self, other):
 		return self.F == other.F
 
@@ -111,7 +121,7 @@ class AStarNode:
 	def __repr__(self):
 		return f"coord: {self.coordinate}, G: {self.G}, H: {self.H}, F:{self.F}"
 
-	def __hash__(self):  # we want to identify unique nodes by their position in the grid
+	def __hash__(self):  # we want to identify unique nodes in our closed set by their position in the grid
 		return hash(self.coordinate)
 
 
@@ -127,7 +137,7 @@ def aStarTraverse(graph, start: tuple, end: tuple):
 		# noinspection PyNoneFunctionAssignment
 		current_node = open_nodes.pop()  # pop current node from priority queue
 		if current_node.coordinate == end:
-			return current_node.G, current_node.tracePath()  # return path cost and path trace
+			return current_node.G  # return path cost (current_node.tracedPath() if you want the actual path)
 		closed_nodes.add(current_node.coordinate)  # add it to the closed set
 		for each in movements:  # each possible movement from here
 			# calculate the new position based on the movement tuple
@@ -146,17 +156,29 @@ def aStarTraverse(graph, start: tuple, end: tuple):
 
 
 def expandGraph(matrix):
-	new_graph = matrix.copy()
-	return new_graph
+	""" expands input data set according to part 2 instructions
 
-
-def display_graph(graph):
-	for _ in graph:
-		print(_)
+	:param matrix: List - 2D list
+	:return: List - Expanded 2D list
+	"""
+	reference = matrix.copy()
+	# we want to expand our data set by 5 times with modified values of the initial data
+	for row in range(len(reference)):
+		for cell in range(4):  # adding 4 more grids horizontally
+			matrix[row] = matrix[row] + [(weight+cell) % 9 + 1 for weight in reference[row]]
+	reference = matrix.copy()  # update reference copy
+	for cell in range(4):  # add 4 more grids vertically
+		for row in reference:
+			matrix.append([(weight+cell) % 9 + 1 for weight in row])
+	return matrix
 
 
 if __name__ == "__main__":
-	start_position = (0, 0)
-	end_position = (len(data)-1, len(data[0])-1)
-	path_cost, path_trace = aStarTraverse(data, start_position, end_position)
+	start_position = (0, 0)  # path start
+	end_position = (len(data)-1, len(data[0])-1)  # path end the opposite corner of origin
+	path_cost = aStarTraverse(data, start_position, end_position)
 	print("part 1: ", path_cost)
+	data = expandGraph(data)  # expand data set for part 2
+	end_position = (len(data) - 1, len(data[0]) - 1)  # get new endpoint
+	path_cost = aStarTraverse(data, start_position, end_position)
+	print("part 2: ", path_cost)
