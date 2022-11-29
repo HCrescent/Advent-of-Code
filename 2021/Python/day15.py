@@ -1,5 +1,7 @@
 """Day 15 Advent_of_Code 2021"""
 # heuristic: horizontal + vertical cells to objective (because we cannot move diagonally it must take H+V moves)
+import time
+start = time.time()
 with open("input/day15.txt", 'r') as infile:
 	data = [[int(char) for char in line.rstrip()] for line in infile]  # two dimensional list/matrix grid
 
@@ -82,20 +84,17 @@ class MinHeap:
 
 class AStarNode:
 	# things we need on init, weight of cell, its x and y position
-	def __init__(self, coord: tuple, came_from):
+	def __init__(self, coord: tuple):
 		"""
 
 		:param coord: Tuple - (x, y) form of 2D list location
-		:param came_from: AStarNode - the node we are coming from to move here, None for starting node
 		"""
-		self.parent = came_from  # need parent node in order to retrace the path
+		self.parent = None  # need parent node in order to retrace the path
 		self.coordinate = coord
 		self.weight = data[coord[0]][coord[1]]  # in our problem we want to sum the weights of the paths
-		#  the cost of its path taken, (parent g plus self weight)
-		self.G = (self.parent.G + self.weight) if self.parent is not None else 0  # first node must have G == 0
-		# distance from end (exact)
-		self.H = abs(end_position[0] - coord[0]) + abs(end_position[1] - coord[1])
-		self.F = self.G + self.H
+		self.G = None
+		self.H = abs(end_position[0] - coord[0]) + abs(end_position[1] - coord[1])  # distance from end (exact)
+		self.F = 0
 
 	def tracePath(self):
 		""" generates the path taken by recursively climbing the tree and bringing all the coordinates down
@@ -108,6 +107,11 @@ class AStarNode:
 		pathing = pathing + [self.coordinate]
 		return pathing
 
+	def connectNode(self, other):
+		self.parent = other
+		self.G = self.parent.G + self.weight
+		self.F = self.G + self.H
+
 	# these comparison operators are overwritten so we can store AStarNodes compared by F value in our heap
 	def __eq__(self, other):
 		return self.F == other.F
@@ -119,18 +123,34 @@ class AStarNode:
 		return self.F <= other.F
 
 	def __repr__(self):
-		return f"coord: {self.coordinate}, G: {self.G}, H: {self.H}, F:{self.F}"
+		return f"{self.coordinate}, G: {self.G}, H: {self.H}, F:{self.F}"
 
 	def __hash__(self):  # we want to identify unique nodes in our closed set by their position in the grid
 		return hash(self.coordinate)
 
 
+def gridNodes(matrix):
+	""" initializes all nodes for each spot in the matrix, so that they are all addressable by x, y
+
+	:param matrix: List - 2D list of risk weights
+	:return: List - 2D list of A* nodes
+	"""
+	new_grid = [row.copy() for row in matrix]
+	for x, row in enumerate(new_grid):
+		for y, _ in enumerate(row):
+			new_grid[x][y] = AStarNode((x, y))
+	return new_grid
+
+
 # noinspection PyUnresolvedReferences
 def aStarTraverse(graph, start: tuple, end: tuple):
+	start_node = graph[start[0]][start[1]]
 	length = len(graph)
 	width = len(graph[0])
 	open_nodes = MinHeap(length*width)  # maximum heap size number grid spaces
-	open_nodes.insert(AStarNode(start, None))
+	start_node.G = 0  # give our starting node a G of 0
+	start_node.F = 0 + start_node.H  # give our starting node F value for heap sorting
+	open_nodes.insert(start_node)  # insert starting node
 	closed_nodes = set()
 	movements = ((1, 0), (-1, 0), (0, 1), (0, -1))
 	while open_nodes.last_i > 0:  # while open nodes isn't empty
@@ -141,21 +161,27 @@ def aStarTraverse(graph, start: tuple, end: tuple):
 		closed_nodes.add(current_node.coordinate)  # add it to the closed set
 		for each in movements:  # each possible movement from here
 			# calculate the new position based on the movement tuple
-			new_coordinate = (current_node.coordinate[0] + each[0], current_node.coordinate[1] + each[1])
+			new_x, new_y = current_node.coordinate[0] + each[0], current_node.coordinate[1] + each[1]
 			# due to python recognizing negative index as displacement from the end, i need to make these checks
 			# because an index error wont raise on access, but for our case a negative number means were are
 			# out of bounds of our graph matrix
-			if new_coordinate[0] > -1 and new_coordinate[1] > -1:
+			if new_x > -1 and new_y > -1:
 				try:  # making sure a node can exist at this spot, by checking data existing in the graph
-					graph[new_coordinate[0]][new_coordinate[1]]
+					neighbor_node = graph[new_x][new_y]  # assign a nicer reference
 				except IndexError:  # the test resulted in index error out of graph bounds
 					continue  # don't access and skip to next iteration
-				if new_coordinate not in closed_nodes:
-					open_nodes.insert(AStarNode(new_coordinate, current_node))  # add node to open nodes\
+				if (new_x, new_y) not in closed_nodes:
+					proposed_G = current_node.G + neighbor_node.weight  # proposed g cost after move
+					if neighbor_node.G is None:  # nodes are initialized with None
+						neighbor_node.connectNode(current_node)  # give the node a parent and calc G and F (H inside)
+						open_nodes.insert(neighbor_node)  # add node to open nodes
+					elif proposed_G <= neighbor_node.G:
+						neighbor_node.connectNode(current_node)  # overwrite parent with better path and update values
+						open_nodes.insert(neighbor_node)  # add node to open nodes
 	return "Failed to find the end"
 
 
-def expandGraph(matrix):
+def expandData(matrix):
 	""" expands input data set according to part 2 instructions
 
 	:param matrix: List - 2D list
@@ -176,9 +202,25 @@ def expandGraph(matrix):
 if __name__ == "__main__":
 	start_position = (0, 0)  # path start
 	end_position = (len(data)-1, len(data[0])-1)  # path end the opposite corner of origin
-	path_cost = aStarTraverse(data, start_position, end_position)
+	node_graph = gridNodes(data)
+	path_cost = aStarTraverse(node_graph, start_position, end_position)
 	print("part 1: ", path_cost)
-	data = expandGraph(data)  # expand data set for part 2
+	end = time.time()
+	print(f"part 1: {end - start}")
+
+	start = time.time()
+	data = expandData(data)  # expand data set for part 2
+	end = time.time()
+	print(f"extend data: {end - start}")
+
+	start = time.time()
 	end_position = (len(data) - 1, len(data[0]) - 1)  # get new endpoint
-	path_cost = aStarTraverse(data, start_position, end_position)
+	node_graph2 = gridNodes(data)
+	end = time.time()
+	print(f"node-ify: {end - start}")
+
+	start = time.time()
+	path_cost = aStarTraverse(node_graph2, start_position, end_position)
 	print("part 2: ", path_cost)
+	end = time.time()
+	print(f"part 2: {end - start}")
