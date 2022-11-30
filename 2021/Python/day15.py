@@ -1,15 +1,13 @@
 """Day 15 Advent_of_Code 2021"""
 # heuristic: horizontal + vertical cells to objective (because we cannot move diagonally it must take H+V moves)
-import time
-start = time.time()
 with open("input/day15.txt", 'r') as infile:
 	data = [[int(char) for char in line.rstrip()] for line in infile]  # two dimensional list/matrix grid
 
 
 class MinHeap:
 	# min priority queue
-	def __init__(self, size):
-		self.heap = [None for _ in range(size)]
+	def __init__(self):
+		self.heap = []
 		self.last_i = 0  # points to the end of the list (for adding new elements)
 
 	def insert(self, element):
@@ -17,11 +15,7 @@ class MinHeap:
 
 		:param element: Any comparable type data
 		"""
-		try:
-			self.heap[self.last_i] = element  # insert new element at last index
-		except IndexError:
-			print("Index Error, needed more heap space.")
-			raise SystemExit(1)
+		self.heap.append(element)  # insert new element at last index
 		parent_i = (self.last_i-1) // 2  # set index of parent node
 		curr_i = self.last_i  # we want the swap index to be our current elements placement
 		self.last_i += 1  # increase index for the last element
@@ -42,41 +36,33 @@ class MinHeap:
 
 		:return: any type - heap should take any comparable element so whatever type is contained is being returned
 		"""
+		hold_min = self.heap.pop()  # pop the last element off the list (this wont be the min yet)
+		tmp_hold = hold_min  # store that popped element for later
 		self.last_i -= 1  # move back one to the last element in the list
-		tmp_hold = self.heap[0]  # temporarily hold the value until we return it
-		self.heap[0] = None  # replace that spot with our empty value
-		# swap root and last nodes
-		self.heap[self.last_i], self.heap[0] = self.heap[0], self.heap[self.last_i]
-		curr_i = 0  # set our current index to node 0
-		# Run until match case: no children or compared child fails
-		while True:
-			# at the start of each iteration update the children node pointers
-			child_l = curr_i * 2 + 1  # set new index of left child
-			child_r = curr_i * 2 + 2  # set new index of right child
-			# build our case expression
-			try:
-				children = f"{0 if self.heap[child_l] is None else 1}{0 if self.heap[child_r] is None else 1}"
-			except IndexError:
-				children = "00"
-			match children:
-				case "11":  # both children nodes exist
-					if self.heap[child_l] <= self.heap[child_r]:
-						compared_child = child_l
-					else:
-						compared_child = child_r
-				case "10":  # right child is None, left child exists
-					compared_child = child_l
-				case "01":  # left child is None, right child exists
-					compared_child = child_r
-				case _:  # both children are None
+		if self.heap:  # if the heap isn't empty
+			self.heap[0], hold_min = hold_min, self.heap[0]  # swap the held item and the root node, we are holding min
+			curr_i = 0  # set our current index to node 0
+			l_child_i = 1  # set index of the first left child
+			# while current index is less than the length of the list
+			while l_child_i < self.last_i:
+				r_child_i = l_child_i + 1  # right child always one position higher
+				if r_child_i < self.last_i:  # if r_child_i exists in heap
+					if self.heap[l_child_i] > self.heap[r_child_i]:  # if the left child is greater than the right child
+						l_child_i = r_child_i  # now l_child_i is pointing to the smallest of either child
+				self.heap[curr_i] = self.heap[l_child_i]
+				curr_i = l_child_i  # update the current position pointer to the position of the child we moved
+				l_child_i = 2 * curr_i + 1  # get new left child
+			# the node we just inserted at current index might not be in the correct position
+			# so now we have to follow its roots up
+			while curr_i > 0:  # run till we hit the root
+				parent_i = (curr_i - 1) // 2  # get position of parent of current position
+				if tmp_hold < self.heap[parent_i]:  # if our held value is less than parent
+					self.heap[curr_i] = self.heap[parent_i]  # current position becomes the parent value
+					curr_i = parent_i  # current position updates to the now "empty" parent
+				else:  # if held value is greater than parent we are done
 					break
-			# if the current node is greater than the compared child, swap them and update current node
-			if self.heap[curr_i] > self.heap[compared_child]:
-				self.heap[curr_i], self.heap[compared_child] = self.heap[compared_child], self.heap[curr_i]
-				curr_i = compared_child
-			else:  # current node is in its correct spot we are done
-				break
-		return tmp_hold  # return our popped value
+			self.heap[curr_i] = tmp_hold  # finally place the value in its rightful place
+		return hold_min  # return our held value
 
 	def printHeap(self):
 		print([_ for _ in self.heap[:self.last_i]])
@@ -142,19 +128,15 @@ def gridNodes(matrix):
 	return new_grid
 
 
-# noinspection PyUnresolvedReferences
 def aStarTraverse(graph, start: tuple, end: tuple):
 	start_node = graph[start[0]][start[1]]
-	length = len(graph)
-	width = len(graph[0])
-	open_nodes = MinHeap(length*width)  # maximum heap size number grid spaces
+	open_nodes = MinHeap()  # maximum heap size number grid spaces
 	start_node.G = 0  # give our starting node a G of 0
 	start_node.F = 0 + start_node.H  # give our starting node F value for heap sorting
 	open_nodes.insert(start_node)  # insert starting node
 	closed_nodes = set()
 	movements = ((1, 0), (-1, 0), (0, 1), (0, -1))
 	while open_nodes.last_i > 0:  # while open nodes isn't empty
-		# noinspection PyNoneFunctionAssignment
 		current_node = open_nodes.pop()  # pop current node from priority queue
 		if current_node.coordinate == end:
 			return current_node.G  # return path cost (current_node.tracedPath() if you want the actual path)
@@ -205,22 +187,8 @@ if __name__ == "__main__":
 	node_graph = gridNodes(data)
 	path_cost = aStarTraverse(node_graph, start_position, end_position)
 	print("part 1: ", path_cost)
-	end = time.time()
-	print(f"part 1: {end - start}")
-
-	start = time.time()
 	data = expandData(data)  # expand data set for part 2
-	end = time.time()
-	print(f"extend data: {end - start}")
-
-	start = time.time()
 	end_position = (len(data) - 1, len(data[0]) - 1)  # get new endpoint
 	node_graph2 = gridNodes(data)
-	end = time.time()
-	print(f"node-ify: {end - start}")
-
-	start = time.time()
 	path_cost = aStarTraverse(node_graph2, start_position, end_position)
 	print("part 2: ", path_cost)
-	end = time.time()
-	print(f"part 2: {end - start}")
