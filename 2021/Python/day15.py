@@ -1,71 +1,8 @@
 """Day 15 Advent_of_Code 2021"""
 # heuristic: horizontal + vertical cells to objective (because we cannot move diagonally it must take H+V moves)
+import heapq
 with open("input/day15.txt", 'r') as infile:
 	data = [[int(char) for char in line.rstrip()] for line in infile]  # two dimensional list/matrix grid
-
-
-class MinHeap:
-	# min priority queue
-	def __init__(self):
-		self.heap = []
-		self.last_i = 0  # points to the end of the list (for adding new elements)
-
-	def insert(self, element):
-		""" Inserts an element at the bottom of our "virtual" tree, and then bubbles the value up accordingly
-
-		:param element: Any comparable type data
-		"""
-		self.heap.append(element)  # insert new element at last index
-		parent_i = (self.last_i-1) // 2  # set index of parent node
-		curr_i = self.last_i  # we want the swap index to be our current elements placement
-		self.last_i += 1  # increase index for the last element
-		while parent_i > -1:  # while we are not at the root (if the parent is -1 current is at i = 0)
-			# if the parent node is larger than the current node
-			if self.heap[parent_i] > self.heap[curr_i]:
-				# swap the two nodes
-				self.heap[parent_i], self.heap[curr_i] = self.heap[curr_i], self.heap[parent_i]
-				# now the parent index becomes the current index
-				curr_i = parent_i
-				# calculate the index of the new parent node of our current node
-				parent_i = (parent_i-1) // 2
-			else:  # the parent node is larger than current node, we are done swapping things around
-				break
-
-	def pop(self):
-		""" removes root node (element at position 0), adjusts the heap and returns the node/element
-
-		:return: any type - heap should take any comparable element so whatever type is contained is being returned
-		"""
-		hold_min = self.heap.pop()  # pop the last element off the list (this wont be the min yet)
-		tmp_hold = hold_min  # store that popped element for later
-		self.last_i -= 1  # move back one to the last element in the list
-		if self.heap:  # if the heap isn't empty
-			self.heap[0], hold_min = hold_min, self.heap[0]  # swap the held item and the root node, we are holding min
-			curr_i = 0  # set our current index to node 0
-			l_child_i = 1  # set index of the first left child
-			# while current index is less than the length of the list
-			while l_child_i < self.last_i:
-				r_child_i = l_child_i + 1  # right child always one position higher
-				if r_child_i < self.last_i:  # if r_child_i exists in heap
-					if self.heap[l_child_i] > self.heap[r_child_i]:  # if the left child is greater than the right child
-						l_child_i = r_child_i  # now l_child_i is pointing to the smallest of either child
-				self.heap[curr_i] = self.heap[l_child_i]
-				curr_i = l_child_i  # update the current position pointer to the position of the child we moved
-				l_child_i = 2 * curr_i + 1  # get new left child
-			# the node we just inserted at current index might not be in the correct position
-			# so now we have to follow its roots up
-			while curr_i > 0:  # run till we hit the root
-				parent_i = (curr_i - 1) // 2  # get position of parent of current position
-				if tmp_hold < self.heap[parent_i]:  # if our held value is less than parent
-					self.heap[curr_i] = self.heap[parent_i]  # current position becomes the parent value
-					curr_i = parent_i  # current position updates to the now "empty" parent
-				else:  # if held value is greater than parent we are done
-					break
-			self.heap[curr_i] = tmp_hold  # finally place the value in its rightful place
-		return hold_min  # return our held value
-
-	def printHeap(self):
-		print([_ for _ in self.heap[:self.last_i]])
 
 
 class AStarNode:
@@ -130,14 +67,14 @@ def gridNodes(matrix):
 
 def aStarTraverse(graph, start: tuple, end: tuple):
 	start_node = graph[start[0]][start[1]]
-	open_nodes = MinHeap()  # maximum heap size number grid spaces
+	open_nodes = []
 	start_node.G = 0  # give our starting node a G of 0
 	start_node.F = 0 + start_node.H  # give our starting node F value for heap sorting
-	open_nodes.insert(start_node)  # insert starting node
+	heapq.heappush(open_nodes, start_node)  # insert starting node
 	closed_nodes = set()
 	movements = ((1, 0), (-1, 0), (0, 1), (0, -1))
-	while open_nodes.last_i > 0:  # while open nodes isn't empty
-		current_node = open_nodes.pop()  # pop current node from priority queue
+	while open_nodes:  # while open nodes isn't empty
+		current_node = heapq.heappop(open_nodes)  # pop current node from priority queue
 		if current_node.coordinate == end:
 			return current_node.G  # return path cost (current_node.tracedPath() if you want the actual path)
 		closed_nodes.add(current_node.coordinate)  # add it to the closed set
@@ -156,10 +93,10 @@ def aStarTraverse(graph, start: tuple, end: tuple):
 					proposed_G = current_node.G + neighbor_node.weight  # proposed g cost after move
 					if neighbor_node.G is None:  # nodes are initialized with None
 						neighbor_node.connectNode(current_node)  # give the node a parent and calc G and F (H inside)
-						open_nodes.insert(neighbor_node)  # add node to open nodes
+						heapq.heappush(open_nodes, neighbor_node)  # add node to open nodes
 					elif proposed_G <= neighbor_node.G:
 						neighbor_node.connectNode(current_node)  # overwrite parent with better path and update values
-						open_nodes.insert(neighbor_node)  # add node to open nodes
+						heapq.heappush(open_nodes, neighbor_node)  # add node to open nodes
 	return "Failed to find the end"
 
 
