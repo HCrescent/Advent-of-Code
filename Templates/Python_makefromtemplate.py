@@ -73,7 +73,7 @@ def create_files(year, day):
         # start writing new file with input data
         with open(input_path, 'w') as new_input:
             new_input.writelines(line.decode('utf-8') for line in urllib.request.urlopen(input_request))
-        print(f"Input input{day}.txt created.")
+        print(f"Input input{two_digit_day}.txt created.")
         return
     print("files already exist")
     return
