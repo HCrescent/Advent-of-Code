@@ -37,7 +37,7 @@ def create_files(year, day):
         with open(script_path, 'w') as new_file:
             new_file.write(f"\"\"\"Day {two_digit_day} Advent_of_Code {year}\"\"\"\n"
                            f"with open(\"input/day{two_digit_day}.txt\", 'r') as infile:\n"
-                           f"\tdata = [line for line in infile]\n"
+                           f"\tdata = [line.rstrip() for line in infile]\n"
                            f"\n"
                            f"\n"
                            f"def fun():\n"
