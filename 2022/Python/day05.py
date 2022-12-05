@@ -1,4 +1,5 @@
 """Day 05 Advent_of_Code 2022"""
+from copy import deepcopy
 with open("input/day05.txt", 'r') as infile:
 	data = [line.rstrip() for line in infile]
 split = data.index("")
@@ -16,6 +17,7 @@ for row in boxes[::-1]:
 	for i, each in enumerate(row):
 		if each != "[0]":
 			stacks[str(i+1)].append(each[1])
+stacks2 = deepcopy(stacks)
 
 
 def part1():
@@ -26,7 +28,17 @@ def part1():
 	return "".join(top_string)
 
 
+def part2():
+	for instruction in movements:
+		temp_stack = []
+		for _ in range(instruction[0]):
+			temp_stack.append(stacks2[instruction[1]].pop())
+		while temp_stack:
+			stacks2[instruction[2]].append(temp_stack.pop())
+	top_string = [stacks2[str(each+1)].pop() for each in range(len(stacks2))]
+	return "".join(top_string)
+
 
 if __name__ == "__main__":
 	print("part 1: ", part1())
-	# print("part 2: ")
+	print("part 2: ", part2())
