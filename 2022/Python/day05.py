@@ -10,8 +10,7 @@ boxes = data[:split-1]  # get a list of just the boxes section
 # this section is formatting the boxes text field for entry into stacks
 for i, row in enumerate(boxes):
 	# I replaced the whitespaces with a stand in for a non-existent box
-	row = row.replace("]    ", "] [0]").replace("    [", "[0] [").replace("   ", "[0]")
-	boxes[i] = row
+	boxes[i] = row.replace("]    ", "] [0]").replace("    [", "[0] [").replace("   ", "[0]")
 # now we can easily split the boxes in a way that keeps them enumerated to their proper stack
 boxes = [each.split() for each in boxes]
 for row in boxes[::-1]:
