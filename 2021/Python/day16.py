@@ -8,6 +8,18 @@ with open("input/day16.txt", 'r') as infile:
 hex_conversion = {hex(i).upper()[2:]: bin(i)[2:].zfill(4) for i in range(16)}
 
 
+def product(values):
+	"""Takes an iterable and creates a product of each element in the iterable
+
+	:param values: List - (or other compatible iterable) to get the product of all elements
+	:return: Int - Calculated product
+	"""
+	prod = 1
+	for _ in values:
+		prod *= _
+	return prod
+
+
 def hex_to_bin(packet):
 	return "".join([hex_conversion[char] for char in packet])
 
@@ -15,7 +27,8 @@ def hex_to_bin(packet):
 def parsePacketBinPart1(binary_string):
 	slicer = 6
 	ver_sum = int(binary_string[:3], base=2)  # add the version number to the running version sum
-	match binary_string[3:6]:  # match the packet type
+	packet_type = binary_string[3:6]
+	match packet_type:  # match the packet type
 		case "100":  # case 4 literal value
 			build_literal = ""
 			while binary_string[slicer] == "1":  # while the first bit in each five is 1
@@ -24,32 +37,46 @@ def parsePacketBinPart1(binary_string):
 			else:  # we hit the first 0 grab the last bits
 				build_literal += binary_string[slicer+1:slicer+5]
 				pkt_len = slicer+5
-				return str(int(build_literal, base=2)), ver_sum, pkt_len  # return literal value, and the running version sum
+				return int(build_literal, base=2), ver_sum, pkt_len  # return literal value, and the running version sum
 		case _:  # operator packet
-			instruction_string = ""  # ultimately we will build a string of the required operations and literals
+			literal_list = []  # ultimately we will build a string of the required operations and literals
 			match binary_string[slicer]:  # check the Length Type ID
 				case "0":  # next 15 bits indicate length of bits of sub-packets
 					subPacket_bit_endpoint = int(binary_string[slicer+1:slicer+16], base=2) + slicer + 16
 					packet_i = slicer+16
 					while packet_i < subPacket_bit_endpoint:
 						tmp_literal, tmp_vSum, pkt_delta = parsePacketBinPart1(binary_string[packet_i:])
-						instruction_string += " " + tmp_literal  # build the instruction string
+						literal_list.append(tmp_literal)  # build the instruction string
 						ver_sum += tmp_vSum  # update teh version sum for part 1
 						packet_i += pkt_delta  # the next pkt index is updated by the length of the previous pkt
-					return instruction_string, ver_sum, packet_i
-				case '1':  # next 11 bits indicate total number of sub-packets
+				case _:  # next 11 bits indicate total number of sub-packets
 					total_subPackets = int(binary_string[slicer+1:slicer+12], base=2)
 					packet_i = slicer+12  # indexer for start of packet
 					for _ in range(total_subPackets):  # for each sub-packet
 						tmp_literal, tmp_vSum, pkt_delta = parsePacketBinPart1(binary_string[packet_i:])
-						instruction_string += " " + tmp_literal  # build the instruction string
+						literal_list.append(tmp_literal)  # build the instruction string
 						ver_sum += tmp_vSum  # update teh version sum for part 1
 						packet_i += pkt_delta  # the next pkt index is updated by the length of the previous pkt
-					return instruction_string, ver_sum, packet_i
+			match packet_type:
+				case "000":  # sum packet
+					new_literal = sum(literal_list)
+				case "001":  # product packet
+					new_literal = product(literal_list)
+				case "010":  # min packet
+					new_literal = min(literal_list)
+				case "011":  # max packet
+					new_literal = max(literal_list)
+				case "101":  # greater than packet
+					new_literal = int(literal_list[0] > literal_list[1])
+				case "110":  # less than packet
+					new_literal = int(literal_list[0] < literal_list[1])
+				case "111":  # equal packet
+					new_literal = int(literal_list[0] == literal_list[1])
+			# no case _ because we would re-catch 100 for literals
+			# noinspection PyUnboundLocalVariable
+			return new_literal, ver_sum, packet_i
 
 
 if __name__ == "__main__":
-	print(data)
-	print(hex_to_bin(data))
-	print("part 1: ", parsePacketBinPart1(hex_to_bin(data))[-2])
-	# print("part 2: ")
+	print("part 1: ", parsePacketBinPart1(hex_to_bin(data))[1])
+	print("part 2: ", parsePacketBinPart1(hex_to_bin(data))[0])
