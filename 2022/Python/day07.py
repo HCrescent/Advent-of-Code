@@ -43,28 +43,24 @@ class Folder:
 			self.size = size_sum
 
 	def findDirsMin(self, size):
-		global dir_size_list
-		global dir_name_list
+		dir_size_l = []
 		if self.size <= size:
-			dir_size_list.append(self.size)
-			dir_name_list.append(self.name)
+			dir_size_l.append(self.size)
 		if not self.subFolders:
-			return
+			return dir_size_l
 		for each in self.subFolders:
-			each.findDirsMin(size)
-		return
+			dir_size_l = dir_size_l + each.findDirsMin(size)
+		return dir_size_l
 
 	def findDirsMax(self, size):
-		global dir_size_list
-		global dir_name_list
+		dir_size_l = []
 		if self.size >= size:
-			dir_size_list.append(self.size)
-			dir_name_list.append(self.name)
+			dir_size_l.append(self.size)
 		if not self.subFolders:
-			return
+			return dir_size_l
 		for each in self.subFolders:
-			each.findDirsMax(size)
-		return
+			dir_size_l = dir_size_l + each.findDirsMax(size)
+		return dir_size_l
 
 
 def buildSubstructure(commands):
@@ -95,14 +91,7 @@ if __name__ == "__main__":
 	update_size = 30_000_000
 	buildSubstructure(data)
 	root.updateSizes()
-	dir_size_list = []
-	dir_name_list = []
-	root.findDirsMin(100_000)
 	free_space = disk_size - root.size
 	extra_space_needed = update_size - free_space
-	print("part 1: ", sum(dir_size_list))
-	dir_size_list.clear()
-	dir_name_list.clear()
-	root.findDirsMax(extra_space_needed)
-	dir_size_list.sort()
-	print("part 2: ", dir_size_list[0])
+	print("part 1: ", sum(root.findDirsMin(100_000)))
+	print("part 2: ", min(root.findDirsMax(extra_space_needed)))
