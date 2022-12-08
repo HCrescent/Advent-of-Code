@@ -4,36 +4,80 @@ with open("input/day08.txt", 'r') as infile:
 
 
 def treeVisible(coord):
+	""" checks if tree at coordinate is visible from outside the grid
+
+	:param coord: Tuple - (int, int) - coordinate
+	:return: Bool - True if visible, False if not
+	"""
 	x, y = coord
 	height = data[y][x]
-	for sub_x in range(x):  # left side
+	for sub_x in range(x):  # west direction
 		if data[y][sub_x] >= height:
-			break
-	else:  # didn't break: Tree visible from outside
+			break  # not visible from west
+	else:  # didn't break: Tree visible from west
 		return True
-	for sub_x in range(x+1, len(data[y])):  # right side
+	for sub_x in range(x+1, len(data[y])):  # east direction
 		if data[y][sub_x] >= height:
-			break
-	else:  # didn't break: Tree visible from outside
+			break  # not visible from east
+	else:  # didn't break: Tree visible from east
 		return True
 	for sub_y in range(y):  # north direction
 		if data[sub_y][x] >= height:
-			break
-	else:  # didn't break: Tree visible from outside
+			break  # not visible from north
+	else:  # didn't break: Tree visible from north
 		return True
 	for sub_y in range(y+1, len(data)):  # south direction
 		if data[sub_y][x] >= height:
-			break
-	else:  # didn't break: Tree visible from outside
+			break  # not visible from south
+	else:  # didn't break: Tree visible from south
 		return True
 	return False  # got here: tree is not visible
 
 
-def countVisTreesOut():
-	visible_trees_out = set()
+def visibleFromTree(coord):
+	""" counts the number of trees visible from treehouse in each cardinal direction,
+	the scenic score is the product of each cardinal count
+	:param coord: Tuple - (int, int) - coordinate
+	:return: Int - scenic score
+	"""
+	x, y = coord
+	height = data[y][x]  # height of treehouse tree
+	countN, countS, countE, countW = 0, 0, 0, 0
+	for sub_x in range(x)[::-1]:  # west direction
+		if data[y][sub_x] >= height:
+			countW += 1
+			break  # we cant see any more trees this direction
+		else:
+			countW += 1
+	for sub_x in range(x+1, len(data[y])):  # east direction
+		if data[y][sub_x] >= height:
+			countE += 1
+			break  # we cant see any more trees this direction
+		else:
+			countE += 1
+	for sub_y in range(y)[::-1]:  # north direction
+		if data[sub_y][x] >= height:
+			countN += 1
+			break  # we cant see any more trees this direction
+		else:
+			countN += 1
+	for sub_y in range(y+1, len(data)):  # south direction
+		if data[sub_y][x] >= height:
+			countS += 1
+			break  # we cant see any more trees this direction
+		else:
+			countS += 1
+	return countN * countW * countE * countS
+
+
+def part1():
+	""" counts the number of trees in the grid that are visible from outside the edge
+
+	:return: Int - list of visible trees
+	"""
+	visible_trees_out = set()  # easy way to avoid duplicate count
 	y_edge = len(data)-1
 	x_edge = len(data[0])-1
-	count = 1  # outside edge
 	for y, row in enumerate(data):
 		for x, each in enumerate(data[y]):
 			if y == 0:  # all top trees are visible
@@ -48,43 +92,16 @@ def countVisTreesOut():
 			elif x == x_edge:  # all right edge trees are visible
 				visible_trees_out.add((x, y))
 				continue
-			if treeVisible((x, y)):
+			if treeVisible((x, y)):  # if tree visible from any cardinal direction
 				visible_trees_out.add((x, y))
 	return len(visible_trees_out)
 
 
-def visibleFromTree(coord):
-	x, y = coord
-	height = data[y][x]
-	countN, countS, countE, countW = 0, 0, 0, 0
-	for sub_x in range(x)[::-1]:  # left side
-		if data[y][sub_x] >= height:
-			countW += 1
-			break
-		else:
-			countW += 1
-	for sub_x in range(x+1, len(data[y])):  # right side
-		if data[y][sub_x] >= height:
-			countE +=1
-			break
-		else:
-			countE += 1
-	for sub_y in range(y)[::-1]:  # north direction
-		if data[sub_y][x] >= height:
-			countN += 1
-			break
-		else:
-			countN += 1
-	for sub_y in range(y+1, len(data)):  # south direction
-		if data[sub_y][x] >= height:
-			countS += 1
-			break
-		else:
-			countS += 1
-	return countN * countW * countE * countS
-
-
 def part2():
+	""" get the maximum possible scenic score for any tree in the grid
+
+	:return: Int - highest scenic score
+	"""
 	tree_scores = []
 	for y in range(len(data)):
 		for x in range(len(data[y])):
@@ -93,5 +110,5 @@ def part2():
 
 
 if __name__ == "__main__":
-	print("part 1: ", countVisTreesOut())
+	print("part 1: ", part1())
 	print("part 2: ", part2())
