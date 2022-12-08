@@ -73,28 +73,28 @@ def visibleFromTree(coord):
 def part1():
 	""" counts the number of trees in the grid that are visible from outside the edge
 
-	:return: Int - list of visible trees
+	:return: Int - number of visible trees
 	"""
-	visible_trees_out = set()  # easy way to avoid duplicate count
+	visible_trees = 0
 	y_edge = len(data)-1
 	x_edge = len(data[0])-1
-	for y, row in enumerate(data):
-		for x, each in enumerate(data[y]):
+	for y in range(len(data)):
+		for x in range(len(data[y])):
 			if y == 0:  # all top trees are visible
-				visible_trees_out.add((x, y))
+				visible_trees += 1
 				continue
 			elif y == y_edge:  # all bottom trees are visible
-				visible_trees_out.add((x, y))
+				visible_trees += 1
 				continue
 			if x == 0:  # all left edge trees are visible
-				visible_trees_out.add((x, y))
+				visible_trees += 1
 				continue
 			elif x == x_edge:  # all right edge trees are visible
-				visible_trees_out.add((x, y))
+				visible_trees += 1
 				continue
 			if treeVisible((x, y)):  # if tree visible from any cardinal direction
-				visible_trees_out.add((x, y))
-	return len(visible_trees_out)
+				visible_trees += 1
+	return visible_trees
 
 
 def part2():
