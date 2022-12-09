@@ -1,4 +1,6 @@
 """Day 09 Advent_of_Code 2022"""
+import time
+start = time.time()
 with open("input/day09.txt", 'r') as infile:
 	data = [(each[0], int(each[1])) for each in [line.rstrip().split(" ") for line in infile]]
 
@@ -9,15 +11,15 @@ def lagT(t, h):
 	x_delta = abs(tx - hx)
 	y_delta = abs(ty - hy)
 	if x_delta == 2 and y_delta == 0:
-		if hx < tx:
-			t[0] -= 1
-		else:
+		if tx < hx:
 			t[0] += 1
-	if y_delta == 2 and x_delta == 0:
-		if hy < ty:
-			t[1] -= 1
 		else:
+			t[0] -= 1
+	if y_delta == 2 and x_delta == 0:
+		if ty < hy:
 			t[1] += 1
+		else:
+			t[1] -= 1
 	if x_delta == 2 and y_delta == 1:
 		if tx < hx:
 			t[0] += 1
@@ -48,72 +50,51 @@ def lagT(t, h):
 	return t
 
 
-def part1(moves):
-	visited_coord = []
-	H = [0, 0]
-	T = [0, 0]
-	for i, movement in enumerate(moves):
+def simulateRopes(moves, total_ropes):
+	""" takes the input movement data and a number of rope segments, then simulates the movement of all rope
+	segments given the head ends movements.
+
+	:param moves: List - [str, int] - list of movements in input data
+	:param total_ropes: Int - number of attached rope segments
+	:return: Int - the total number of unique space visited by tail segment
+	"""
+	rope_visited = {each: [] for each in range(total_ropes)}
+	rope_coord = {each: [0, 0] for each in range(total_ropes)}
+	for movement in moves:
 		match movement[0]:
 			case 'R':
-				for _ in range(movement[1]):
-					H[0] += 1
-					T = lagT(T, H)
-					visited_coord.append(tuple(T))
-			case 'L':
-				for _ in range(movement[1]):
-					H[0] -= 1
-					T = lagT(T, H)
-					visited_coord.append(tuple(T))
-			case 'U':
-				for _ in range(movement[1]):
-					H[1] += 1
-					T = lagT(T, H)
-					visited_coord.append(tuple(T))
-			case 'D':
-				for _ in range(movement[1]):
-					H[1] -= 1
-					T = lagT(T, H)
-					visited_coord.append(tuple(T))
-	return len(set(visited_coord))
-
-
-def part2(moves):
-	rope_history = {each: [] for each in range(10)}
-	rope_visited = {each: [] for each in range(10)}
-	rope_coord = {each: [0, 0] for each in range(10)}
-	for i, movement in enumerate(moves):
-		match movement[0]:
-			case 'R':
-				for _ in range(movement[1]):
-					rope_coord[0][0] += 1
-					for rope in range(len(rope_coord)-1):
-						rope_history[rope].append(tuple(rope_coord[rope]))
+				for _ in range(movement[1]):  # repeat for number of times given for direction
+					rope_coord[0][0] += 1  # move lead rope right one unit
+					for rope in range(len(rope_coord)-1):  # for each rope minus the first
 						rope_coord[rope+1] = lagT(rope_coord[rope+1], rope_coord[rope])
-						rope_visited[rope+1].append(tuple(rope_coord[rope+1]))
+						if rope == total_ropes-2:  # remove check if you want data for each rope segment segment
+							rope_visited[rope+1].append(tuple(rope_coord[rope+1]))
 			case 'L':
 				for _ in range(movement[1]):
-					rope_coord[0][0] -= 1
-					for rope in range(len(rope_coord) - 1):
-						rope_history[rope].append(tuple(rope_coord[rope]))
-						rope_coord[rope + 1] = lagT(rope_coord[rope + 1], rope_coord[rope])
-						rope_visited[rope + 1].append(tuple(rope_coord[rope + 1]))
+					rope_coord[0][0] -= 1  # move lead rope left one unit
+					for rope in range(len(rope_coord)-1):  # for each rope minus the first
+						rope_coord[rope+1] = lagT(rope_coord[rope+1], rope_coord[rope])
+						if rope == total_ropes - 2:  # remove check if you want data for each rope segment segment
+							rope_visited[rope+1].append(tuple(rope_coord[rope+1]))
 			case 'U':
 				for _ in range(movement[1]):
-					rope_coord[0][1] += 1
-					for rope in range(len(rope_coord) - 1):
-						rope_history[rope].append(tuple(rope_coord[rope]))
-						rope_coord[rope + 1] = lagT(rope_coord[rope + 1], rope_coord[rope])
-						rope_visited[rope + 1].append(tuple(rope_coord[rope + 1]))
+					rope_coord[0][1] += 1  # move lead rope up one unit
+					for rope in range(len(rope_coord)-1):  # for each rope minus the first
+						rope_coord[rope+1] = lagT(rope_coord[rope+1], rope_coord[rope])
+						if rope == total_ropes - 2:  # remove check if you want data for each rope segment segment
+							rope_visited[rope+1].append(tuple(rope_coord[rope+1]))
 			case 'D':
 				for _ in range(movement[1]):
-					rope_coord[0][1] -= 1
-					for rope in range(len(rope_coord) - 1):
-						rope_history[rope].append(tuple(rope_coord[rope]))
-						rope_coord[rope + 1] = lagT(rope_coord[rope + 1], rope_coord[rope])
-						rope_visited[rope + 1].append(tuple(rope_coord[rope + 1]))
-	return len(set(rope_visited[9]))
+					rope_coord[0][1] -= 1  # move lead rope down one unit
+					for rope in range(len(rope_coord)-1):  # for each rope minus the first
+						rope_coord[rope+1] = lagT(rope_coord[rope+1], rope_coord[rope])
+						if rope == total_ropes - 2:  # remove check if you want data for each rope segment segment
+							rope_visited[rope+1].append(tuple(rope_coord[rope+1]))
+	return len(set(rope_visited[total_ropes-1]))  # total unique coordinates visited by the tail end of conjoined ropes
 
 
 if __name__ == "__main__":
-	print("part 1: ", part1(data))
-	print("part 2: ", part2(data))
+	print("part 1: ", simulateRopes(data, 2))
+	print("part 2: ", simulateRopes(data, 10))
+	end = time.time()
+	print(f"t:{end - start}")
