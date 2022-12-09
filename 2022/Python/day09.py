@@ -6,48 +6,40 @@ with open("input/day09.txt", 'r') as infile:
 
 
 def lagT(t, h):
-	tx, ty = t
-	hx, hy = h
+	""" determines the tail movement for a head piece of simulated rope
+
+	:param t: - List - [int, int]
+	:param h: - List - [int, int]
+	:return: - List - updated t parameter (or not changed if no movement required)
+	"""
+	tx, ty = t  # tail coordinate
+	hx, hy = h  # head coordinate
 	x_delta = abs(tx - hx)
 	y_delta = abs(ty - hy)
-	if x_delta == 2 and y_delta == 0:
+	if x_delta == 2 and y_delta == 0:   # horizontal movements
 		if tx < hx:
 			t[0] += 1
 		else:
 			t[0] -= 1
-	if y_delta == 2 and x_delta == 0:
+		return t  # return updated tail coordinate
+	if y_delta == 2 and x_delta == 0:  # vertical movements
 		if ty < hy:
 			t[1] += 1
 		else:
 			t[1] -= 1
-	if x_delta == 2 and y_delta == 1:
-		if tx < hx:
-			t[0] += 1
-		else:
-			t[0] -= 1
-		if ty < hy:
-			t[1] += 1
-		else:
-			t[1] -= 1
-	if y_delta == 2 and x_delta == 1:
-		if ty < hy:
-			t[1] += 1
-		else:
-			t[1] -= 1
-		if tx < hx:
-			t[0] += 1
-		else:
-			t[0] -= 1
-	if y_delta == 2 and x_delta == 2:
-		if ty < hy:
-			t[1] += 1
-		else:
-			t[1] -= 1
-		if tx < hx:
-			t[0] += 1
-		else:
-			t[0] -= 1
-	return t
+		return t  # return updated tail coordinate
+	if x_delta + y_delta < 3:  # for all cases with no move
+		return t  # return unchanged tail coordinate
+	# for all cases resulting in diagonal movements
+	if tx < hx:
+		t[0] += 1
+	else:
+		t[0] -= 1
+	if ty < hy:
+		t[1] += 1
+	else:
+		t[1] -= 1
+	return t  # return updated tail coordinate
 
 
 def simulateRopes(moves, total_ropes):
