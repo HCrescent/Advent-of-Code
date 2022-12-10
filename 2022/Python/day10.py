@@ -10,47 +10,42 @@ def printDisplay():
 		print("".join(each))
 
 
-def part1():
-	cycles = [0]
-	register = 1
-	for instruction in data:
-		cycles.append(register)
-		if instruction[0] == "noop":
-			pass
-		if instruction[0] == "addx":
-			cycles.append(register)
-			register += instruction[1]
-	for i in range(len(cycles)):
-		cycles[i] = cycles[i] * i
-	return sum(cycles[20:221:40])
-
-
 def draw(cycle, reg):
+	""" Draw the screen, lit pixel if the register is within range of the currently active scanline
+
+	:param cycle: Int - cycle count
+	:param reg: Int - value in the register at this cycle
+	:return: None
+	"""
+	# cycle = cycle % 240  # you would need this line if we were gonna draw more than one screen
 	x, y, z = reg-1, reg, reg+1
 	row = cycle // 40  # row of display
-	position = (cycle - (row * 40))-1
+	position = (cycle - (row * 40))-1  # get position in that row
 	if position == x or position == y or position == z:
 		display[row][position] = "#"
 	return
 
 
-def part2():
+def processCycles():
+	""" process the two operations and cycle lengths, calling the draw function for each cycle
+
+	:return: Int - sum of 20th, 60th, 100th, 140th, 180th, 220th cycles
+	"""
 	cycles = [0]
 	register = 1
 	for instruction in data:
 		cycles.append(register)
 		draw(len(cycles)-1, register)
-		if instruction[0] == "noop":
-			pass
 		if instruction[0] == "addx":
 			cycles.append(register)
 			draw(len(cycles)-1, register)
 			register += instruction[1]
+	for i in range(len(cycles)):  # update the cycle values for cycle scores
+		cycles[i] *= i
 	return sum(cycles[20:221:40])
 
 
 if __name__ == "__main__":
-	print("part 1: ", part1())
+	print("part 1: ", processCycles())
 	print("part 2: ")
-	part2()
 	printDisplay()
