@@ -29,7 +29,7 @@ def runMonkeysPart2(rounds, part1=False):
 	for _ in range(rounds):  # for number of rounds
 		for i in range(len(monkeys)):  # for each monkey
 			if not part1:
-				monkeys[i] = [each % lcm for each in monkeys[i]]
+				monkeys[i] = [each % lcm for each in monkeys[i]]  # reduce number without changing its modulus
 			for inspection in monkeys[i]:  # for each object the monkey has
 				inspection_counts[i] += 1  # increase that monkeys inspection tracker
 				if operation_lines[i][0] == "old":  # if left input is supposed to be current object
