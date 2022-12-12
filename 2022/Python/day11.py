@@ -1,7 +1,6 @@
 """Day 11 Advent_of_Code 2022"""
 with open("input/day11.txt", 'r') as infile:
 	data = [line.rstrip().split() for line in infile]
-# for every 7th line from the first objects line, int the first 2 chars of the strings in sliced line[2:]
 test_modulus = [int(line[-1]) for line in data[3::7]]  # give a list of the tests for each monkey
 operation_lines = [line[-3:] for line in data[2::7]]  # get info for each monkeys operation
 true_destinations = [int(line[-1]) for line in data[4::7]]  # addresses for modulus true
@@ -16,13 +15,20 @@ def product(values):
 	:return: Int - Calculated product
 	"""
 	prod = 1
-	for _ in values:
-		prod *= _
+	for n in values:
+		prod *= n
 	return prod
 
 
-def runMonkeysPart2(rounds, part1=False):
-	lcm = product(test_modulus)
+def runMonkeys(rounds, part1=False):
+	""" simulate monkeys passing around items based on the inputs
+
+	:param rounds: Int - total number of rounds to process
+	:param part1: Bool - flag to toggle method of reducing worry level
+	:return: Int - monkey business (the product of the two most active monkey's interaction totals)
+	"""
+	lcm = product(test_modulus)  # least common multiple for reducing worry
+	# for every 7th line from the first objects line, int the first 2 chars of the strings in sliced line[2:]
 	starting_lists = [[int(num[:2]) for num in line[2:]] for line in data[1::7]]  # list of each starting monkeys items
 	monkeys = {i: starting_lists[i] for i, _ in enumerate(data[::7])}  # monkey dictionary {id: monkey items}
 	inspection_counts = [0 for _ in range(len(monkeys))]  # inspection totals for each monkey
@@ -53,5 +59,5 @@ def runMonkeysPart2(rounds, part1=False):
 
 
 if __name__ == "__main__":
-	print("part 1: ", runMonkeysPart2(20, True))
-	print("part 2: ", runMonkeysPart2(10_000))
+	print("part 1: ", runMonkeys(20, True))
+	print("part 2: ", runMonkeys(10_000))
