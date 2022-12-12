@@ -13,6 +13,18 @@ operator_lambdas = {
 }
 
 
+def product(values):
+	"""Takes an iterable and creates a product of each element in the iterable
+
+	:param values: List - (or other compatible iterable) to get the product of all elements
+	:return: Int - Calculated product
+	"""
+	prod = 1
+	for _ in values:
+		prod *= _
+	return prod
+
+
 def runMonkeysPart1(rounds):
 	starting_lists = [[int(num[:2]) for num in line[2:]] for line in data[1::7]]  # list of each starting monkeys items
 	monkeys = {i: starting_lists[i] for i, _ in enumerate(data[::7])}  # monkey dictionary {id: monkey items}
@@ -40,11 +52,13 @@ def runMonkeysPart1(rounds):
 
 
 def runMonkeysPart2(rounds):
+	gcd = product(test_modulus)
 	starting_lists = [[int(num[:2]) for num in line[2:]] for line in data[1::7]]  # list of each starting monkeys items
 	monkeys = {i: starting_lists[i] for i, _ in enumerate(data[::7])}  # monkey dictionary {id: monkey items}
 	inspection_counts = [0 for _ in range(len(monkeys))]  # inspection totals for each monkey
 	for _ in range(rounds):  # for number of rounds
 		for i in range(len(monkeys)):  # for each monkey
+			monkeys[i] = [each % gcd for each in monkeys[i]]
 			for inspection in monkeys[i]:  # for each object the monkey has
 				inspection_counts[i] += 1  # increase that monkeys inspection tracker
 				if operation_lines[i][0] == "old":  # if left input is supposed to be current object
@@ -67,6 +81,4 @@ def runMonkeysPart2(rounds):
 
 if __name__ == "__main__":
 	print("part 1: ", runMonkeysPart1(20))
-	print("part 2: ", 10197)
-	print("part 2: ", runMonkeysPart2(20))
-	pass
+	print("part 2: ", runMonkeysPart2(10000))
