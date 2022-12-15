@@ -1,30 +1,6 @@
 """Day 14 Advent_of_Code 2022"""
-from os import system, name
-from time import sleep
 with open("input/day14.txt", 'r') as infile:
 	data = [[tuple(map(int, coord.split(","))) for coord in line.rstrip().split(" -> ")] for line in infile]
-
-
-def clear():
-	if name == 'nt':
-		_ = system('cls')
-
-
-def display(void_level, cavern_map, sand_map, time):
-	max_x = max([each[0] for each in cavern_map])
-	min_x = min([each[0] for each in cavern_map])
-	matrix = [['.' for x in range(max_x+2)] for y in range(void_level+1)]
-	matrix[0][500] = '+'
-	matrix[time[1]][time[0]] = '0'
-	for coord in cavern_map:
-		matrix[coord[1]][coord[0]] = '#'
-	for coord in sand_map:
-		matrix[coord[1]][coord[0]] = 'O'
-	for each in matrix:
-		print("".join(each[min_x-1:max_x+3]))
-	sleep(0.2)
-	clear()
-	return
 
 
 def buildObstacles(directions):
@@ -69,8 +45,7 @@ def pourSand(void_level, cavern_map, source=(500, 0)):
 		while sand[1] < void_level:
 			for adjust in movement_adjustment:
 				move = (sand[0] + adjust[0], sand[1] + adjust[1])
-				if move not in cavern_map and move not in sand_map:
-					# display(void_level, cavern_map, sand_map, sand)  # for sample displaying
+				if move not in cavern_map and move not in sand_map:  # space is traversable
 					sand = move
 					break
 			else:  # nowhere to go, sand found its resting spot
@@ -81,16 +56,16 @@ def pourSand(void_level, cavern_map, source=(500, 0)):
 
 def pourSand2(floor_level, cavern_map, source=(500, 0)):
 	sand_map = set()
-	sand = source
 	movement_adjustment = ((0, 1), (-1, 1), (1, 1))  # movements down, left, right
 	while source not in sand_map:
 		sand = source
 		while source not in sand_map:
 			for adjust in movement_adjustment:
 				move = (sand[0] + adjust[0], sand[1] + adjust[1])
-				if move not in cavern_map and move not in sand_map and move[1] < floor_level+1:
-					sand = move
-					break
+				if move[1] < floor_level + 1:  # no solid floor beneath
+					if move not in cavern_map and move not in sand_map:  # space is traversable
+						sand = move
+						break
 			else:  # nowhere to go, sand found its resting spot
 				sand_map.add(sand)
 				break
