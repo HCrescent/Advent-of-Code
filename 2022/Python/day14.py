@@ -62,7 +62,7 @@ def pourSand2(floor_level, cavern_map, source=(500, 0)):
 		while source not in sand_map:
 			for adjust in movement_adjustment:
 				move = (sand[0] + adjust[0], sand[1] + adjust[1])
-				if move[1] < floor_level + 1:  # no solid floor beneath
+				if move[1] < floor_level + 1:  # above the cavern floor
 					if move not in cavern_map and move not in sand_map:  # space is traversable
 						sand = move
 						break
