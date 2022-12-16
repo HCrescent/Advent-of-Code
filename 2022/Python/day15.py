@@ -8,60 +8,44 @@ beacons = [tuple(int(num) for num in each[1].replace("x=", "")[13:].replace("y="
 def getDistance(sensor, beacon):
 	return abs(beacon[0] - sensor[0]) + abs(beacon[1] - sensor[1])
 
+# scope notes and ideas
+# what is the leftmost bound? first thought is leftmost beacon, but example shows that two sensors that would extend
+# well past that, so next thought is adding some sort of Manhattan distance to the the leftmost bound? unsure if will
+# work, run into a thought problem, what if a sensor with a large Manhattan is far to the left of a leftmost beacon,
+# therefore, we must find the leftmost object, whether beacon or sensor, PLUS that Manhattan distance? which Manhattan
+# distance? but wait if the beacon is left most object, known spaces to the left will still be from a leftmost sensor
+# therefore i think we can go with leftmost sensor plus Manhattan distance as the overall left bound and mirrored for
+# right bound, hopefully that doesnt overload
 
-def part1(y_row):
-	row_dict = {}
-	movements = []
-	for i, sensor in enumerate(sensors):
-		dist = getDistance(sensor, beacons[i])
-		x, y = sensor
-		current = [x, y-dist]  # top of area
-		# top triangle section
-		for N in range(dist):
-			current[1] = y + (N-dist)
-			if current[1] in row_dict:
-				row_dict[current[1]].add(tuple(current))  # add coordinate to that rows dict set
-			else:
-				row_dict.update({current[1]: set()})  # make new entry in dict with a set initialized with coord
-				row_dict[current[1]].add((current[0], current[1]))
-			# left side squares
-			for left in range(1, N+1):
-				row_dict[current[1]].add((current[0]-left, current[1]))  # add spaces to left of current
-			# right side squares
-			for right in range(1, N+1):
-				row_dict[current[1]].add((current[0]+right, current[1]))  # add spaces to right of current
-		# bottom triangle section
-		current = [x, y+dist]
-		for N in range(dist):
-			current[1] = y - (N-dist)
-			if current[1] in row_dict:
-				row_dict[current[1]].add(tuple(current))  # add coordinate to that rows dict set
-			else:
-				row_dict.update({current[1]: set()})  # make new entry in dict with a set initialized with coord
-				row_dict[current[1]].add((current[0], current[1]))
-			# left side squares
-			for left in range(1, N + 1):
-				row_dict[current[1]].add((current[0] - left, current[1]))  # add spaces to left of current
-			# right side squares
-			for right in range(1, N + 1):
-				row_dict[current[1]].add((current[0] + right, current[1]))  # add spaces to right of current
-		# middle base line
-		current = [x, y]
-		for N in range(dist+1):
-			if current[1] in row_dict:
-				row_dict[current[1]].add(tuple(current))  # add coordinate to that rows dict set
-			else:
-				row_dict.update({current[1]: set()})  # make new entry in dict with a set initialized with coord
-				row_dict[current[1]].add((current[0], current[1]))
-			# left side squares
-			for left in range(1, N + 1):
-				row_dict[current[1]].add((current[0] - left, current[1]))  # add spaces to left of current
-			# right side squares
-			for right in range(1, N + 1):
-				row_dict[current[1]].add((current[0] + right, current[1]))  # add spaces to right of current
-	return len(row_dict[y_row])
+
+def leftmostRightmost():
+	""" returns the best choice indexes for min and max sensors for bound calculation
+
+	:return: List - min and max indexes in global data set for sensors
+	"""
+	SB_pairs = list(zip(sensors, beacons))
+	x_list = [each[0] for each in sensors]
+	tmp_min, tmp_max = min(x_list), max(x_list)
+	if x_list.count(tmp_min) == 1:
+		min_i = x_list.index(tmp_min)
+	else:  # figure out which has the larger Manhattan distance
+		ties_indexes = [i for i, x in enumerate(x_list) if x == tmp_min]  # get all tied leftmost sensors indexes
+		manhattans = [getDistance(*SB_pairs[index]) for index in ties_indexes]  # get all manhattans to their beacon
+		min_i = ties_indexes[manhattans.index(max(manhattans))]  # ties don't matter here for max, gets final index
+	if x_list.count(tmp_max) == 1:
+		max_i = x_list.index(tmp_max)
+	else:  # figure out which has the larger Manhattan distance
+		ties_indexes = [i for i, x in enumerate(x_list) if x == tmp_max]  # get all tied rightmost sensors indexes
+		manhattans = [getDistance(*SB_pairs[index]) for index in ties_indexes]  # get all manhattans to their beacon
+		max_i = ties_indexes[manhattans.index(max(manhattans))]  # ties don't matter here for max, gets final index
+	return min_i, max_i
+
+
+def knownSpaces(y_row):
+	manhattans = []
+	return
 
 
 if __name__ == "__main__":
-	print("part 1: ", part1(2_000_000))
+	print("part 1: ", leftmostRightmost())
 	# print("part 2: ")
