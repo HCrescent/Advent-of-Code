@@ -17,6 +17,10 @@ def getDistance(sensor, beacon):
 # therefore i think we can go with leftmost sensor plus Manhattan distance as the overall left bound and mirrored for
 # right bound, hopefully that doesnt overload
 
+# might be wrong, i was able to imagine a rightmost sensor, with a Manhattan of 3, but then a slightly behind
+# sensor farther down the vertical access with a much wider Manhattan outstretching that bound
+# new idea for later: a bound that add the largest Manhattan from the leftmost and rightmost object
+
 
 def leftmostRightmost():
 	""" returns the best choice indexes for min and max sensors for bound calculation
@@ -42,10 +46,29 @@ def leftmostRightmost():
 
 
 def knownSpaces(y_row):
-	manhattans = []
-	return
+	manhattans = [getDistance(*pair) for pair in list(zip(sensors, beacons))]  # get all manhattan distance totals
+	beacon_set = set(beacons)
+	l, r = leftmostRightmost()
+	first_x = sensors[l][0] - max(manhattans)
+	last_x = sensors[r][0] + max(manhattans)
+	known_count = 0
+	debug_list = []
+	for x in range(first_x, last_x+1):
+		# for each coordinate for x y_row, we need to calculate manhattan distance to each sensor, if one returns <= to
+		# that sensors manhattan distance to its beacon, then we know that coordinate is covered
+		for i, sen_coord in enumerate(sensors):
+			if getDistance((x, y_row), sen_coord) <= manhattans[i]:
+				debug_list.append(x)
+				known_count += 1
+				break
+	known_count -= [each[1] for each in beacon_set].count(y_row)
+	return known_count
+
+
+def part2():
+	pass
 
 
 if __name__ == "__main__":
-	print("part 1: ", leftmostRightmost())
+	print("part 1: ", knownSpaces(2_000_000))
 	# print("part 2: ")
