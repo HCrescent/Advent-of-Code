@@ -1,4 +1,6 @@
 """Day 15 Advent_of_Code 2022"""
+import time
+start = time.time()
 with open("input/day15.txt", 'r') as infile:
 	data = [line.rstrip().split(": closest ") for line in infile]
 sensors = [tuple(int(num) for num in each[0].replace("x=", "")[10:].replace("y=", "").split(', ')) for each in data]
@@ -66,9 +68,15 @@ def knownSpaces(y_row):
 
 
 def part2():
+	manhattans = [getDistance(*pair) for pair in list(zip(sensors, beacons))]  # get all manhattan distance totals
+	for i, each in enumerate(manhattans):
+		print(f"sensor:{sensors[i]!s:>20}  beacon:{beacons[i]!s:>   20}  manhattan: {each:>10}")
+	# return x * 4_000_000 + y
 	pass
 
 
 if __name__ == "__main__":
 	print("part 1: ", knownSpaces(2_000_000))
-	# print("part 2: ")
+	# print("part 2: ", part2())
+	end = time.time()
+	print(f"t:{end - start}")
