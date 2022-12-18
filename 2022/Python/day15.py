@@ -10,73 +10,75 @@ beacons = [tuple(int(num) for num in each[1].replace("x=", "")[13:].replace("y="
 def getDistance(sensor, beacon):
 	return abs(beacon[0] - sensor[0]) + abs(beacon[1] - sensor[1])
 
-# scope notes and ideas
-# what is the leftmost bound? first thought is leftmost beacon, but example shows that two sensors that would extend
-# well past that, so next thought is adding some sort of Manhattan distance to the the leftmost bound? unsure if will
-# work, run into a thought problem, what if a sensor with a large Manhattan is far to the left of a leftmost beacon,
-# therefore, we must find the leftmost object, whether beacon or sensor, PLUS that Manhattan distance? which Manhattan
-# distance? but wait if the beacon is left most object, known spaces to the left will still be from a leftmost sensor
-# therefore i think we can go with leftmost sensor plus Manhattan distance as the overall left bound and mirrored for
-# right bound, hopefully that doesnt overload
 
-# might be wrong, i was able to imagine a rightmost sensor, with a Manhattan of 3, but then a slightly behind
-# sensor farther down the vertical access with a much wider Manhattan outstretching that bound
-# new idea for later: a bound that add the largest Manhattan from the leftmost and rightmost object
-
-
-def leftmostRightmost():
-	""" returns the best choice indexes for min and max sensors for bound calculation
-
-	:return: List - min and max indexes in global data set for sensors
-	"""
-	SB_pairs = list(zip(sensors, beacons))
-	x_list = [each[0] for each in sensors]
-	tmp_min, tmp_max = min(x_list), max(x_list)
-	if x_list.count(tmp_min) == 1:
-		min_i = x_list.index(tmp_min)
-	else:  # figure out which has the larger Manhattan distance
-		ties_indexes = [i for i, x in enumerate(x_list) if x == tmp_min]  # get all tied leftmost sensors indexes
-		manhattans = [getDistance(*SB_pairs[index]) for index in ties_indexes]  # get all manhattans to their beacon
-		min_i = ties_indexes[manhattans.index(max(manhattans))]  # ties don't matter here for max, gets final index
-	if x_list.count(tmp_max) == 1:
-		max_i = x_list.index(tmp_max)
-	else:  # figure out which has the larger Manhattan distance
-		ties_indexes = [i for i, x in enumerate(x_list) if x == tmp_max]  # get all tied rightmost sensors indexes
-		manhattans = [getDistance(*SB_pairs[index]) for index in ties_indexes]  # get all manhattans to their beacon
-		max_i = ties_indexes[manhattans.index(max(manhattans))]  # ties don't matter here for max, gets final index
-	return min_i, max_i
+def condenseCoverage(ranges, part_1=True):
+	unique_ranges = []  # the final spread to return
+	temp_range = ranges[0]  # the range we are building arithmetically
+	for each in ranges[1:]:
+		if each[0] <= temp_range[1]:  # if left x-bound for each range, is contained inside our temp
+			if each[1] > temp_range[1]:  # if it starts inside and extends farther, the new farthest is each[1]
+				temp_range.pop()  # remove old right-bound
+				temp_range.append(each[1])  # add new right-bound
+		else:  # gap in coverage
+			unique_ranges.append(temp_range)
+			temp_range = each
+	else:  # we went through all ranges
+		unique_ranges.append(temp_range)
+	if part_1:
+		return unique_ranges
+	unique_ranges_p2 = []
+	left, right = 0, 4_000_000
+	temp_range_p2 = []
+	for each in unique_ranges:
+		if each[0] < left <= each[1]:  # if zero is between left and right bound
+			temp_range_p2.append(left)  # temp range starts at 0
+			if each[1] >= right:  # if each[1] is greater or equal than right we are done
+				temp_range_p2.append(right)  # right bound is 4 mil
+				unique_ranges_p2.append(temp_range_p2)
+				return unique_ranges_p2
+			else:
+				temp_range_p2.append(each[1])  # append the right bound
+				unique_ranges_p2.append(temp_range_p2)  # put it in unique ranges part 2
+		else:  # zero is not withing bound
+			if each[1] >= right:
+				unique_ranges_p2.append([each[0], right])
+				return unique_ranges_p2
 
 
 def knownSpaces(y_row):
 	manhattans = [getDistance(*pair) for pair in list(zip(sensors, beacons))]  # get all manhattan distance totals
-	beacon_set = set(beacons)
-	l, r = leftmostRightmost()
-	first_x = sensors[l][0] - max(manhattans)
-	last_x = sensors[r][0] + max(manhattans)
-	known_count = 0
-	debug_list = []
-	for x in range(first_x, last_x+1):
-		# for each coordinate for x y_row, we need to calculate manhattan distance to each sensor, if one returns <= to
-		# that sensors manhattan distance to its beacon, then we know that coordinate is covered
-		for i, sen_coord in enumerate(sensors):
-			if getDistance((x, y_row), sen_coord) <= manhattans[i]:
-				debug_list.append(x)
-				known_count += 1
-				break
-	known_count -= [each[1] for each in beacon_set].count(y_row)
-	return known_count
+	coverage_range = []
+	for i, sensor in enumerate(sensors):
+		delta_y = abs(sensor[1] - y_row)
+		if delta_y > manhattans[i]:  # coverage does not reach
+			continue
+		else:  # coverage reaches at least 1 square
+			x1, x2 = sensor[0] - manhattans[i] + delta_y, sensor[0] + manhattans[i] - delta_y
+			coverage_range.append([x1, x2])
+	return sorted(coverage_range)
+
+
+def part1(target):
+	ranges = knownSpaces(target)
+	simplified_ranges = condenseCoverage(ranges)
+	total = 0
+	for each in simplified_ranges:
+		total += (each[1] - each[0])+1
+	return total - len(set([each for each in beacons if each[1] == target]))  # subtract beacons in that line
 
 
 def part2():
-	manhattans = [getDistance(*pair) for pair in list(zip(sensors, beacons))]  # get all manhattan distance totals
-	for i, each in enumerate(manhattans):
-		print(f"sensor:{sensors[i]!s:>20}  beacon:{beacons[i]!s:>   20}  manhattan: {each:>10}")
-	# return x * 4_000_000 + y
-	pass
+	for i in range(4_000_001):
+		ranges = knownSpaces(i)
+		simplified_ranges = condenseCoverage(ranges, False)
+		if len(simplified_ranges) > 1:
+			x = simplified_ranges[0][1]+1
+			y = i
+			return x * 4_000_000 + y
 
 
 if __name__ == "__main__":
-	print("part 1: ", knownSpaces(2_000_000))
-	# print("part 2: ", part2())
+	print("part 1: ", part1(2_000_000))
+	print("part 2: ", part2())
 	end = time.time()
 	print(f"t:{end - start}")
