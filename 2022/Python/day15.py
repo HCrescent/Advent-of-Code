@@ -1,6 +1,4 @@
 """Day 15 Advent_of_Code 2022"""
-import time
-start = time.time()
 with open("input/day15.txt", 'r') as infile:
 	data = [line.rstrip().split(": closest ") for line in infile]
 sensors = [tuple(int(num) for num in each[0].replace("x=", "")[10:].replace("y=", "").split(', ')) for each in data]
@@ -12,6 +10,13 @@ def getDistance(sensor, beacon):
 
 
 def condenseCoverage(ranges, part_1=True):
+	""" takes a list of covered ranges and condenses them into the a simplified range or ranges, condensing overlap
+	into single range if possible, multiple ranges if theres gaps
+
+	:param ranges: List - list of scanned ranges
+	:param part_1: Bool - flag to extend functionality to part2
+	:return: List - simplified ranges
+	"""
 	unique_ranges = []  # the final spread to return
 	temp_range = ranges[0]  # the range we are building arithmetically
 	for each in ranges[1:]:
@@ -46,6 +51,11 @@ def condenseCoverage(ranges, part_1=True):
 
 
 def knownSpaces(y_row):
+	""" for a single y row gets a list of all scanned ranges on that 1D line
+
+	:param y_row: Int - the row we want the scanned information from
+	:return: List - ranges of scanned points on that y row
+	"""
 	manhattans = [getDistance(*pair) for pair in list(zip(sensors, beacons))]  # get all manhattan distance totals
 	coverage_range = []
 	for i, sensor in enumerate(sensors):
@@ -68,6 +78,7 @@ def part1(target):
 
 
 def part2():
+	# bruteforce approach of running part 1 up to 4 million times, takes about 1 min to execute
 	for i in range(4_000_001):
 		ranges = knownSpaces(i)
 		simplified_ranges = condenseCoverage(ranges, False)
@@ -80,5 +91,3 @@ def part2():
 if __name__ == "__main__":
 	print("part 1: ", part1(2_000_000))
 	print("part 2: ", part2())
-	end = time.time()
-	print(f"t:{end - start}")
