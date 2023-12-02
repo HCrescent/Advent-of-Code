@@ -5,7 +5,7 @@ look = {'1','2','3','4','5','6','7','8','9'}
 translate = {'one': '1', 'two': '2', 'three': '3', 'four': '4', 'five': '5', 'six': '6', 'seven': '7', 'eight': '8', 'nine': '9'}
 
 
-def fun(strings):
+def part1(strings):
 	number_Strings = []
 	for line in strings:
 		word = []
@@ -51,15 +51,9 @@ def part2(strings):
 			temp_str = each[0] + each[-1]
 			temp_int = int(temp_str)
 			sum_list.append(temp_int)
-	# for i, each in enumerate(data):
-	# 	print(data[i])
-	# 	print(sum_list[i])
-	# 	throwaway = input()
 	return sum(sum_list)
 
 
 if __name__ == "__main__":
-	print(fun(data))
-	print(part2(data))
-	# print("part 1: ")
-	# print("part 2: ")
+	print("part 1: ", part1(data))
+	print("part 2: ", part2(data))
