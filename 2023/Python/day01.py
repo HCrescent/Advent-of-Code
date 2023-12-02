@@ -26,17 +26,17 @@ def part2(strings):
 	number_Strings = []
 	for line in strings:
 		found = []
-		for character in line:
+		for character in look:
 			pointer = 0
-			if character in look:
+			for _ in range(line.count(character)):
 				found.append([line.find(character, pointer), character])
-				pointer = line.find(character)+1
+				pointer = line.find(character, pointer)+1
 		for word in translate:
 			if word in line:
 				pointer = 0
 				for _ in range(line.count(word)):
 					found.append([line.find(word, pointer), translate[word]])
-					pointer = line.find(word)+1
+					pointer = line.find(word, pointer)+1
 		found.sort()
 		number_Strings.append(found)
 	sum_list = []
@@ -51,10 +51,10 @@ def part2(strings):
 			temp_str = each[0] + each[-1]
 			temp_int = int(temp_str)
 			sum_list.append(temp_int)
-	for i, each in enumerate(data):
-		print(data[i])
-		print(sum_list[i])
-		throwaway = input()
+	# for i, each in enumerate(data):
+	# 	print(data[i])
+	# 	print(sum_list[i])
+	# 	throwaway = input()
 	return sum(sum_list)
 
 
