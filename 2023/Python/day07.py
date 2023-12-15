@@ -16,48 +16,31 @@ class CamelHand:
 		self.hand_type = evalHandType(self.cards)
 		self.hand_score = hand_scores[self.hand_type]
 
-
 	def winByHighCard(self, other):
 		for i, value in enumerate(self.cards):
 			if value == other.cards[i]:
 				continue
 			return card_scores[value] < card_scores[other.cards[i]]
-		else:
-			# the hands are exactly the same and cant be tie broken
-			print("Look! That tricky Mr Wastl tried to trip me up.")
-			return "Draw"
 
 
 	def part2(self):
-		# temp_set = set(self.cards)
-		# hand_list = [[self.cards.count(key), key] for key in temp_set]
-		# # hand_list.sort()
-		# # self.hand_type = evalHandType(self.cards.replace('J', hand_list))
-		j_count = self.cards.count('J')
 		match self.hand_score:
 			case 0:  # high card -> one pair
 				self.hand_score = hand_scores["One Pair"]
-				self.hand_type = "One Pair"
 			case 1:  # one pair -> three of a kind
 				self.hand_score = hand_scores["Three of a Kind"]
-				self.hand_type = "Three of a Kind"
 			case 2:  # two pair -> full house
+				j_count = self.cards.count('J')
 				if j_count == 1:
 					self.hand_score = hand_scores["Full House"]
-					self.hand_type = "Full House"
 				else:
 					self.hand_score = hand_scores["Four of a Kind"]
-					self.hand_type = "Four of a Kind"
 			case 3:  # three of a kind -> four of a kind
 				self.hand_score = hand_scores["Four of a Kind"]
-				self.hand_type = "Four of a Kind"
 			case 4:  # full house -> five of a kind
 				self.hand_score = hand_scores["Five of a Kind"]
-				self.hand_type = "Five of a Kind"
 			case 5:  # four of a kind -> five of a kind
 				self.hand_score = hand_scores["Five of a Kind"]
-				self.hand_type = "Five of a Kind"
-
 		return
 
 	def __lt__(self, other):
@@ -66,19 +49,12 @@ class CamelHand:
 		else:
 			return self.winByHighCard(other)
 
-
-	def __mul__(self, other):
-		if type(other) == int:
-			return self.bid * other
-
-
 	def __rmul__(self, other):
 		if type(other) == int:
 			return other * self.bid
 
 	def __repr__(self):
 		return f"{self.cards}, {self.hand_type}, {self.hand_score}, {self.bid}/"
-
 
 
 def evalHandType(hand):
@@ -96,14 +72,13 @@ def evalHandType(hand):
 				return "Full House"
 		# only 3 different numbers means possibilities are Three of a Kind or Two Pairs
 		case 3:
-			# if any of the values have counts greater than 2, it's a Three of a Kind, if not it's a Two Pairs
+			# if any of the values have counts greater than 2, it's a Three of a Kind, if not it's Two Pairs
 			hand_values_list = [card[0] for card in hand]
 			for value in hand_values_list:
 				if hand_values_list.count(value) > 2:
 					return "Three of a Kind"
 			else:
 				return "Two Pairs"
-		# only 4 different numbers has only One possibility and our easiest case
 		case 4:
 			return "One Pair"
 		case 5:
