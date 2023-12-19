@@ -1,5 +1,6 @@
 """Day 08 Advent_of_Code 2023"""
 import re
+from math import lcm
 with open("input/day08.txt", 'r') as infile:
 	data = [line.rstrip() for line in infile]
 
@@ -38,21 +39,29 @@ def part1():
 def part2():
 	for each in data[2:]:
 		DesertNode(each)
-	current_nodes = [desert_dict[_] for _ in [key for key in desert_dict.keys() if re.match("..A", key)]]
-	answer_nodes = []
-	steps = 0
+	starting = [desert_dict[_] for _ in [key for key in desert_dict.keys() if re.match("..A", key)]]
+	end_nodes = [desert_dict[_] for _ in [key for key in desert_dict.keys() if re.match("..Z", key)]]
 	move_cycle = len(moves)
-	while len(answer_nodes) != len(current_nodes):
-		for i, node in enumerate(current_nodes):
-			current_nodes[i] = desert_dict[node.children[moves[steps % move_cycle]]]
-		answer_nodes = [each.name for each in current_nodes if re.match("..Z", each.name)]
-		steps += 1
-		if steps % 10_000_000 == 0:
-			print(steps)
-	return steps
+	cycle_steps = []
+	for NODE in starting:
+		node_steps = []
+		temp_node = NODE
+		continuous_steps = 0
+		for _ in range(2):
+			loop_steps = 1
+			temp_node = desert_dict[temp_node.children[moves[continuous_steps % move_cycle]]]
+			continuous_steps += 1
+			while temp_node not in end_nodes:
+				temp_node = desert_dict[temp_node.children[moves[continuous_steps % move_cycle]]]
+				continuous_steps += 1
+				loop_steps += 1
+			node_steps.append(loop_steps)
+		else:
+			cycle_steps.append(node_steps[1])
+	return lcm(*cycle_steps)
 
 
 
 if __name__ == "__main__":
-	# print("part 1: ", part1())
+	print("part 1: ", part1())
 	print("part 2: ", part2())
