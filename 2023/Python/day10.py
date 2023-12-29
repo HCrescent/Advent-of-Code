@@ -5,11 +5,6 @@ with open("input/day10.txt", 'r') as infile:
 move_dict = {'E': (0,1), 'SE': (1,1), 'S':(1,0), 'SW': (1,-1), 'W': (0,-1), 'NW': (-1,-1), 'N': (-1,0), 'NE': (-1,1)}
 pipe_dict = {'|':('N', 'S'), '-':('E', 'W'), 'F':('E', 'S'), '7':('S', 'W'), 'J':('N', 'W'), 'L':('N', 'E'), '.':('0','0')}
 
-# plan now that pipe is hashable we will make a set of visited pipes (1 for each loop), we will do this once for S
-# connector 1 full loop around pipe network then again in opposite direction for S connector 2 then we will line up
-# the pipes by steps, and the spot where both steps are the same should be the farthest pipe segment (assuming the loop
-# is properly odd to have a midpoint). While traversing the pipes, we will try both connectors and first one not in
-# visited dicts we go, end clause is both connectors are in dict
 class Pipe:
 	def __init__(self, coordinate, steps):
 		self.coord = tuple(coordinate)
@@ -18,7 +13,7 @@ class Pipe:
 		self.steps = steps
 
 	def __eq__(self, other):
-		return self.steps == other.steps
+		return self.coord == other.coord
 
 	def __ne__(self, other):
 		return self.coord != other.coord
@@ -82,24 +77,18 @@ def determineStart():
 		pass
 	pipe = [k for k, v in pipe_dict.items() if v == tuple(pipe_entrances)]
 	data[start_location[0]] = data[start_location[0]].replace('S', pipe[0])
-	printPipes(start_location)
 	return start_location
 
 
-def traverse(start_node, flag=True):
+def traverse(start_node):
 	positive = {start_node}
 	steps = 1
-	if flag:
-		current_node = Pipe([sum(_) for _ in zip(start_node.coord, move_dict[pipe_dict[start_node.pipeType][0]])], 1)
-	else:
-		current_node = Pipe([sum(_) for _ in zip(start_node.coord, move_dict[pipe_dict[start_node.pipeType][1]])], 1)
+	current_node = Pipe([sum(_) for _ in zip(start_node.coord, move_dict[pipe_dict[start_node.pipeType][0]])], 1)
 	positive.add(current_node)
-	next_node = current_node
 	while True:
-		print(steps)
 		for n in range(2):
 			next_node = Pipe([sum(_) for _ in zip(current_node.coord, move_dict[current_node.connectors[n]])], steps+1)
-			if next_node not in positive:
+			if not next_node in positive:
 				current_node = next_node
 				positive.add(current_node)
 				steps+=1
@@ -110,11 +99,9 @@ def traverse(start_node, flag=True):
 
 def part1():
 	start_node = Pipe(determineStart(), 0)
-	resultp = traverse(start_node)
-	resultn = traverse(start_node, False)
-	print(resultp)
-	print(resultn)
-	return
+	result = traverse(start_node)
+	result.sort()
+	return result, result[len(result)//2].steps
 
 
 if __name__ == "__main__":
