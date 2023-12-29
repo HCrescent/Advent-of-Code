@@ -101,7 +101,7 @@ def part1():
 	start_node = Pipe(determineStart(), 0)
 	result = traverse(start_node)
 	result.sort()
-	return result, result[len(result)//2].steps
+	return result[len(result)//2].steps
 
 
 if __name__ == "__main__":
